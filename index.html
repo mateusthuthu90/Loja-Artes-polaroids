@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artes Polaroids | Suas memórias merecem ganhar forma</title>
+<meta name="description" content="Transforme suas fotos favoritas em polaroids, quadros, chaveiros e presentes personalizados. Feito à mão, com carinho, para todo o Brasil.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="fade-in">
+      <span class="section-eyebrow">Lembranças personalizadas</span>
+      <h1>Suas memórias <em>merecem ganhar forma.</em></h1>
+      <p class="lead">Transforme suas fotos favoritas em lembranças para guardar, presentear e reviver. Polaroids, quadros, chaveiros e presentes feitos à mão, com carinho.</p>
+      <div class="hero-ctas">
+        <a href="produtos.html" class="btn btn-primary">Escolher meus produtos</a>
+        <a href="#como-funciona" class="btn btn-outline">Como funciona</a>
+      </div>
+      <div class="hero-proof"><span class="dot"></span> +500 lembranças entregues para todo o Brasil</div>
+    </div>
+    <div class="hero-visual fade-in">
+      <div class="polaroid-stack">
+        <div class="polaroid-card p1"><div class="pic"></div></div>
+        <div class="polaroid-card p2"><div class="pic"></div></div>
+        <div class="polaroid-card p3"><div class="pic"></div></div>
+      </div>
+      <span class="placeholder-label">imagem ilustrativa — trocar por fotos reais</span>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="section">
+  <div class="container">
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="icon">✨</div>
+        <h3>Qualidade premium</h3>
+        <p>Impressão fosca de alta definição com cores fiéis à sua foto original.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">📦</div>
+        <h3>Enviamos pra todo o Brasil</h3>
+        <p>Frete calculado com rastreio, do nosso ateliê até a sua casa.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">💛</div>
+        <h3>Feito com carinho</h3>
+        <p>Cada peça é produzida artesanalmente, com atenção aos detalhes.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="icon">🔒</div>
+        <h3>Pagamento seguro</h3>
+        <p>Checkout protegido, com Pix e cartão de crédito.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Nossa coleção</span>
+      <h2 class="section-title">Escolha sua lembrança</h2>
+      <p class="section-subtitle">Cada peça é produzida com as suas fotos e muito cuidado.</p>
+    </div>
+    <div class="product-grid" id="featuredGrid"></div>
+    <div style="text-align:center; margin-top: 40px;">
+      <a href="produtos.html" class="btn btn-outline">Ver todos os produtos</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="como-funciona">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Simples assim</span>
+      <h2 class="section-title">Como funciona</h2>
+      <p class="section-subtitle">Do clique de "comprar" até a lembrança na sua mão — sem complicação.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <h3>Escolha seus produtos</h3>
+        <p>Navegue pela nossa coleção e monte seu pedido do jeitinho que quiser.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <h3>Envie suas fotos</h3>
+        <p>Após a aprovação do pedido, mande suas fotos favoritas pelo WhatsApp.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <h3>Nós cuidamos de tudo</h3>
+        <p>Produzimos cada peça artesanalmente, com atenção a cada detalhe.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <h3>Receba suas lembranças</h3>
+        <p>Enviamos com carinho até a sua casa, em qualquer lugar do Brasil.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="section">
+  <div class="container">
+    <div class="cta-banner">
+      <h2>Pronto para eternizar seus momentos?</h2>
+      <p>Escolha sua lembrança favorita e receba em casa com todo o cuidado que suas memórias merecem.</p>
+      <a href="produtos.html" class="btn btn-primary">Começar meu pedido</a>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderHeader('home');
+  renderFooter();
+
+  // Mostra 3 produtos em destaque (os marcados como "novo" + mais um)
+  const featured = PRODUCTS.filter(p => p.isNew).concat(PRODUCTS.filter(p => !p.isNew)).slice(0, 6);
+  document.getElementById('featuredGrid').innerHTML = featured.map(p => `
+    <a href="produto.html?id=${p.id}" class="product-card">
+      <div class="product-thumb">
+        ${p.isNew ? '<span class="badge-new">Novidade</span>' : ''}
+        ${p.icon}
+      </div>
+      <div class="product-info">
+        <div class="product-category">${p.category}</div>
+        <h3>${p.name}</h3>
+        <p class="desc">${p.shortDesc}</p>
+        <div class="product-price-row">
+          <span class="product-price">${formatBRL(p.price)}</span>
+        </div>
+      </div>
+    </a>
+  `).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finalizar pedido | Artes Polaroids</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero" style="padding-bottom:10px;">
+  <div class="container">
+    <span class="section-eyebrow">Quase lá</span>
+    <h1>Finalizar pedido</h1>
+  </div>
+</section>
+
+<section class="section" style="padding-top:10px;">
+  <div class="container" id="checkoutContainer">
+    <!-- preenchido via JS -->
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderHeader('carrinho');
+  renderFooter();
+
+  const cart = getCart();
+  const container = document.getElementById('checkoutContainer');
+
+  if(cart.length === 0){
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🛍️</div>
+        <h3 style="margin-bottom:8px;">Seu carrinho está vazio</h3>
+        <p style="margin-bottom:20px;">Adicione produtos antes de finalizar o pedido.</p>
+        <a href="produtos.html" class="btn btn-primary">Ver produtos</a>
+      </div>
+    `;
+  } else {
+    const subtotal = getCartSubtotal();
+    const shipping = getMockShipping(subtotal);
+    const total = subtotal + shipping;
+    let paymentMethod = 'pix';
+
+    container.innerHTML = `
+      <div class="checkout-layout">
+        <div>
+          <div class="form-card" style="margin-bottom:20px;">
+            <h3>Seus dados</h3>
+            <div class="form-grid">
+              <div class="field full">
+                <label>Nome completo</label>
+                <input type="text" id="fName" placeholder="Seu nome">
+              </div>
+              <div class="field">
+                <label>WhatsApp</label>
+                <input type="tel" id="fPhone" placeholder="(33) 99999-9999">
+              </div>
+              <div class="field">
+                <label>E-mail</label>
+                <input type="email" id="fEmail" placeholder="seu@email.com">
+              </div>
+            </div>
+
+            <h3>Endereço de entrega</h3>
+            <div class="form-grid">
+              <div class="field">
+                <label>CEP</label>
+                <input type="text" id="fCep" placeholder="00000-000">
+              </div>
+              <div class="field">
+                <label>Cidade</label>
+                <input type="text" id="fCity" placeholder="Sua cidade">
+              </div>
+              <div class="field full">
+                <label>Endereço</label>
+                <input type="text" id="fAddress" placeholder="Rua, avenida...">
+              </div>
+              <div class="field">
+                <label>Número</label>
+                <input type="text" id="fNumber" placeholder="Nº">
+              </div>
+              <div class="field">
+                <label>Complemento</label>
+                <input type="text" id="fComplement" placeholder="Apto, bloco... (opcional)">
+              </div>
+              <div class="field">
+                <label>Estado</label>
+                <input type="text" id="fState" placeholder="UF">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h3>Forma de pagamento</h3>
+            <div class="payment-options">
+              <div class="payment-option selected" data-method="pix">
+                <div class="icon">📱</div>
+                <div class="label">Pix</div>
+                <div class="sub">Aprovação imediata</div>
+              </div>
+              <div class="payment-option" data-method="card">
+                <div class="icon">💳</div>
+                <div class="label">Cartão de crédito</div>
+                <div class="sub">Em até 3x</div>
+              </div>
+            </div>
+            <div class="mock-notice">
+              🔧 Modo demonstração: nesta fase o pagamento ainda não é processado de verdade. Em breve conectaremos ao Mercado Pago para pagamentos reais.
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <h3>Resumo do pedido</h3>
+          ${cart.map(item => {
+            const p = findProduct(item.productId);
+            if(!p) return '';
+            return `<div class="summary-line"><span>${p.name} x${item.quantity}</span><span>${formatBRL(p.price*item.quantity)}</span></div>`;
+          }).join('')}
+          <div class="summary-line"><span>Subtotal</span><span>${formatBRL(subtotal)}</span></div>
+          <div class="summary-line"><span>Frete</span><span>${shipping === 0 ? 'Grátis' : formatBRL(shipping)}</span></div>
+          <div class="summary-line total"><span>Total</span><span>${formatBRL(total)}</span></div>
+          <button class="btn btn-primary btn-block" id="submitOrderBtn" style="margin-top:16px;">Finalizar pedido</button>
+          <p style="font-size:0.78rem;color:var(--text-soft);text-align:center;margin-top:10px;">
+            🔒 Ambiente preparado para pagamento seguro
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.querySelectorAll('.payment-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        paymentMethod = opt.dataset.method;
+      });
+    });
+
+    document.getElementById('submitOrderBtn').addEventListener('click', () => {
+      const name = document.getElementById('fName').value.trim();
+      const phone = document.getElementById('fPhone').value.trim();
+      const email = document.getElementById('fEmail').value.trim();
+
+      if(!name || !phone || !email){
+        showToast('⚠️ Preencha nome, WhatsApp e e-mail para continuar');
+        return;
+      }
+
+      const orderNumber = 'AP' + Math.floor(100000 + Math.random()*900000);
+      const order = {
+        orderNumber,
+        items: cart.map(item => {
+          const p = findProduct(item.productId);
+          return { name: p.name, quantity: item.quantity, price: p.price, options: item.selectedOptions };
+        }),
+        subtotal, shipping, total,
+        paymentMethod,
+        customer: { name, phone, email },
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem('ap_last_order', JSON.stringify(order));
+      clearCart();
+      window.location.href = 'confirmacao.html';
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Produto | Artes Polaroids</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="section" style="padding-top:32px;">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Início</a> / <a href="produtos.html">Produtos</a> / <span id="breadcrumbName"></span>
+    </div>
+
+    <div class="product-detail" id="productDetail">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+</section>
+
+<!-- PRODUTOS RELACIONADOS -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Você também pode gostar</span>
+      <h2 class="section-title">Outras lembranças</h2>
+    </div>
+    <div class="product-grid" id="relatedGrid"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderHeader('produtos');
+  renderFooter();
+
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('id');
+  const product = findProduct(productId) || PRODUCTS[0];
+
+  document.getElementById('pageTitle').textContent = `${product.name} | Artes Polaroids`;
+  document.getElementById('breadcrumbName').textContent = product.name;
+
+  let selectedOptions = {};
+  Object.keys(product.options).forEach(key => {
+    selectedOptions[key] = product.options[key][0];
+  });
+  let quantity = 1;
+
+  function optionsHtml(){
+    return Object.entries(product.options).map(([group, values]) => `
+      <div class="option-group">
+        <label class="group-label">${group}</label>
+        <div class="option-pills" data-group="${group}">
+          ${values.map(v => `<button class="option-pill ${selectedOptions[group]===v ? 'selected':''}" data-value="${v}">${v}</button>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderDetail(){
+    document.getElementById('productDetail').innerHTML = `
+      <div class="fade-in">
+        <div class="gallery-main">${product.icon}</div>
+        <div class="gallery-thumbs">
+          <div class="gallery-thumb active">${product.icon}</div>
+          <div class="gallery-thumb">🖼️</div>
+          <div class="gallery-thumb">✨</div>
+        </div>
+      </div>
+      <div class="fade-in">
+        <div class="detail-category">${product.category}</div>
+        <h1>${product.name}</h1>
+        <div class="detail-price">${formatBRL(product.price)}</div>
+        <p class="detail-desc">${product.fullDesc}</p>
+
+        ${optionsHtml()}
+
+        <div class="qty-selector">
+          <label class="group-label" style="margin:0;">Quantidade</label>
+          <div class="qty-box">
+            <button id="qtyMinus">−</button>
+            <span id="qtyValue">${quantity}</span>
+            <button id="qtyPlus">+</button>
+          </div>
+        </div>
+
+        <div class="personalize-box">
+          <div class="icon">📸</div>
+          <div class="txt">
+            <strong>Personalize suas fotos</strong>
+            Em breve você poderá enviar, cortar e ajustar suas fotos direto por aqui antes de finalizar o pedido.
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-block" id="addToCartBtn">Adicionar ao carrinho</button>
+        </div>
+        <div style="margin-top:10px;">
+          <button class="btn btn-ghost btn-sm btn-disabled" disabled>🔒 Personalizar minhas fotos (em breve)</button>
+        </div>
+      </div>
+    `;
+
+    document.querySelectorAll('.option-pills').forEach(group => {
+      group.addEventListener('click', (e) => {
+        if(e.target.classList.contains('option-pill')){
+          selectedOptions[group.dataset.group] = e.target.dataset.value;
+          renderDetail();
+        }
+      });
+    });
+
+    document.getElementById('qtyMinus').addEventListener('click', () => {
+      quantity = Math.max(1, quantity - 1);
+      document.getElementById('qtyValue').textContent = quantity;
+    });
+    document.getElementById('qtyPlus').addEventListener('click', () => {
+      quantity += 1;
+      document.getElementById('qtyValue').textContent = quantity;
+    });
+    document.getElementById('addToCartBtn').addEventListener('click', () => {
+      addToCart(product.id, quantity, selectedOptions);
+      showToast(`✅ ${product.name} adicionado ao carrinho`);
+    });
+  }
+
+  renderDetail();
+
+  // Relacionados: mesma categoria, excluindo o atual
+  const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0,3);
+  const fallback = PRODUCTS.filter(p => p.id !== product.id).slice(0,3);
+  const relatedList = related.length ? related : fallback;
+  document.getElementById('relatedGrid').innerHTML = relatedList.map(p => `
+    <a href="produto.html?id=${p.id}" class="product-card">
+      <div class="product-thumb">${p.icon}</div>
+      <div class="product-info">
+        <div class="product-category">${p.category}</div>
+        <h3>${p.name}</h3>
+        <p class="desc">${p.shortDesc}</p>
+        <div class="product-price-row"><span class="product-price">${formatBRL(p.price)}</span></div>
+      </div>
+    </a>
+  `).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contato | Artes Polaroids</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="section-eyebrow">Fale com a gente</span>
+    <h1>Estamos por aqui</h1>
+    <p>Dúvidas, sugestões ou quer só bater um papo sobre seu pedido? Escolha o canal que preferir.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
+  <div class="container contact-grid">
+    <div>
+      <div class="contact-card">
+        <div class="icon">💬</div>
+        <div>
+          <h3>WhatsApp</h3>
+          <p>(33) 99999-9999 — nosso canal mais rápido para dúvidas e envio de fotos.</p>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="icon">📷</div>
+        <div>
+          <h3>Instagram</h3>
+          <p>@artespolaroids — acompanhe novidades, bastidores e promoções.</p>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="icon">✉️</div>
+        <div>
+          <h3>E-mail</h3>
+          <p>contato@artespolaroids.com.br</p>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="icon">🕐</div>
+        <div>
+          <h3>Horário de atendimento</h3>
+          <p>Segunda a sábado, das 9h às 19h.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Mande uma mensagem</h3>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nome</label>
+          <input type="text" placeholder="Seu nome">
+        </div>
+        <div class="field full">
+          <label>E-mail</label>
+          <input type="email" placeholder="seu@email.com">
+        </div>
+        <div class="field full">
+          <label>Mensagem</label>
+          <input type="text" placeholder="Como podemos ajudar?">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" id="sendMsgBtn">Enviar mensagem</button>
+      <p style="font-size:0.78rem;color:var(--text-soft);text-align:center;margin-top:10px;">
+        🔧 Formulário demonstrativo — em breve conectado a um canal real de atendimento.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderHeader('contato');
+  renderFooter();
+  document.getElementById('sendMsgBtn').addEventListener('click', () => {
+    showToast('✅ Mensagem enviada! (modo demonstração)');
+  });
+</script>
+</body>
+</html>

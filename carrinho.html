@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrinho | Artes Polaroids</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<section class="page-hero" style="padding-bottom:20px;">
+  <div class="container">
+    <span class="section-eyebrow">Seu pedido</span>
+    <h1>Carrinho</h1>
+  </div>
+</section>
+
+<section class="section" style="padding-top:10px;">
+  <div class="container" id="cartContainer">
+    <!-- preenchido via JS -->
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/main.js"></script>
+<script>
+  renderHeader('carrinho');
+  renderFooter();
+
+  let appliedCouponPct = 0;
+  let appliedCouponCode = '';
+
+  function renderCart(){
+    const cart = getCart();
+    const container = document.getElementById('cartContainer');
+
+    if(cart.length === 0){
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🛍️</div>
+          <h3 style="margin-bottom:8px;">Seu carrinho está vazio</h3>
+          <p style="margin-bottom:20px;">Que tal escolher uma lembrancinha pra começar?</p>
+          <a href="produtos.html" class="btn btn-primary">Ver produtos</a>
+        </div>
+      `;
+      return;
+    }
+
+    const subtotal = getCartSubtotal();
+    const shipping = getMockShipping(subtotal);
+    const discount = subtotal * appliedCouponPct;
+    const total = Math.max(0, subtotal - discount + shipping);
+
+    container.innerHTML = `
+      <div class="cart-layout">
+        <div class="cart-list">
+          ${cart.map((item, index) => {
+            const p = findProduct(item.productId);
+            if(!p) return '';
+            const optsText = Object.entries(item.selectedOptions || {}).map(([k,v]) => `${k}: ${v}`).join(' · ');
+            return `
+              <div class="cart-row">
+                <div class="thumb">${p.icon}</div>
+                <div class="meta">
+                  <div class="name">${p.name}</div>
+                  ${optsText ? `<div class="opt">${optsText}</div>` : ''}
+                  <div class="unit-price">${formatBRL(p.price)} cada</div>
+                </div>
+                <div class="qty-box">
+                  <button data-action="minus" data-index="${index}">−</button>
+                  <span>${item.quantity}</span>
+                  <button data-action="plus" data-index="${index}">+</button>
+                </div>
+                <div class="row-total">${formatBRL(p.price * item.quantity)}</div>
+                <button class="remove-btn" data-action="remove" data-index="${index}" title="Remover">🗑️</button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="summary-card">
+          <h3>Resumo do pedido</h3>
+          <div class="summary-line"><span>Subtotal</span><span>${formatBRL(subtotal)}</span></div>
+          ${discount > 0 ? `<div class="summary-line"><span>Cupom (${appliedCouponCode})</span><span>− ${formatBRL(discount)}</span></div>` : ''}
+          <div class="summary-line"><span>Frete</span><span>${shipping === 0 ? 'Grátis' : formatBRL(shipping)}</span></div>
+          <div class="summary-line total"><span>Total</span><span>${formatBRL(total)}</span></div>
+
+          <div class="coupon-row">
+            <input type="text" id="couponInput" placeholder="Cupom de desconto">
+            <button class="btn btn-outline btn-sm" id="applyCouponBtn">Aplicar</button>
+          </div>
+          <div id="couponMsg"></div>
+
+          <a href="checkout.html" class="btn btn-primary btn-block" style="margin-top:16px;">Continuar para pagamento</a>
+          <p style="font-size:0.78rem;color:var(--text-soft);text-align:center;margin-top:10px;">
+            Frete grátis para compras acima de R$ 100,00
+          </p>
+        </div>
+      </div>
+    `;
+
+    container.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index, 10);
+        const action = btn.dataset.action;
+        if(action === 'plus') updateCartItemQty(index, 1);
+        if(action === 'minus') updateCartItemQty(index, -1);
+        if(action === 'remove') removeCartItem(index);
+        renderCart();
+      });
+    });
+
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+    if(applyCouponBtn){
+      applyCouponBtn.addEventListener('click', () => {
+        const code = document.getElementById('couponInput').value;
+        const pct = applyCouponMock(code);
+        const msgEl = document.getElementById('couponMsg');
+        if(pct > 0){
+          appliedCouponPct = pct;
+          appliedCouponCode = code.trim().toUpperCase();
+          msgEl.innerHTML = `<div class="coupon-msg ok">Cupom aplicado: ${pct*100}% de desconto 🎉</div>`;
+          renderCart();
+        } else {
+          appliedCouponPct = 0;
+          msgEl.innerHTML = `<div class="coupon-msg err">Cupom inválido ou expirado.</div>`;
+        }
+      });
+    }
+  }
+
+  renderCart();
+</script>
+</body>
+</html>
