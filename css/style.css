@@ -13,13 +13,13 @@
   --card-bg:       #fffdf8;   /* branco levemente quente — cards */
   --border:        #e6dbc4;   /* linhas e bordas sutis */
 
-  --text:          #362a1f;   /* texto principal */
-  --text-muted:    #7d6f5c;   /* texto secundário */
-  --text-soft:     #a4977f;   /* texto terciário / placeholders */
+  --text:          #4a3c30;   /* texto principal — marrom taupe, igual à referência */
+  --text-muted:    #8a7a68;   /* texto secundário */
+  --text-soft:     #ad9f8c;   /* texto terciário / placeholders */
 
-  --primary:       #c1683f;   /* terracota — cor de marca */
-  --primary-dark:  #a2532f;
-  --primary-soft:  #f0d9c8;   /* terracota bem clara — fundos de destaque */
+  --primary:       #b9846a;   /* rosa-terracota — usado no selo/eyebrow e sublinhado */
+  --primary-dark:  #5c4534;   /* marrom escuro — botões sólidos, igual à referência */
+  --primary-soft:  #f0e2d5;   /* terracota bem clara — fundos de destaque */
 
   --accent:        #d9a441;   /* dourado suave — detalhes/selos */
   --accent-soft:   #f4e6c3;
@@ -130,11 +130,11 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
 .btn:active{ transform: translateY(1px) scale(0.99); }
 
 .btn-primary{
-  background: var(--primary);
+  background: var(--primary-dark);
   color: #fff9f2;
   box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover{ background: var(--primary-dark); box-shadow: var(--shadow-md); }
+.btn-primary:hover{ background: #4a3728; box-shadow: var(--shadow-md); }
 
 .btn-outline{
   background: transparent;
@@ -192,6 +192,12 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
   color:#fff9f2;
   box-shadow: var(--shadow-sm);
 }
+.brand-logo{
+  height: 34px;
+  width: auto;
+  display:block;
+}
+
 .main-nav{ display:flex; align-items:center; gap: 30px; }
 .main-nav a{
   font-size: 0.95rem; font-weight:500; color: var(--text-muted);
@@ -201,7 +207,7 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
 .main-nav a:hover, .main-nav a.active{ color: var(--text); }
 .main-nav a.active::after{
   content:''; position:absolute; left:0; right:0; bottom:-4px; height:2px;
-  background: var(--primary); border-radius: 2px;
+  background: var(--primary-dark); border-radius: 2px;
 }
 .header-actions{ display:flex; align-items:center; gap: 14px; }
 .cart-btn{
@@ -393,7 +399,7 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
 
 /* ---------------- CTA BANNER ---------------- */
 .cta-banner{
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, #7a5c48, var(--primary-dark));
   border-radius: var(--radius-lg);
   padding: 56px 40px;
   text-align:center;

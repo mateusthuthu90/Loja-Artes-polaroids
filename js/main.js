@@ -18,8 +18,7 @@ function renderHeader(activePage){
   const html = `
     <div class="header-inner">
       <a href="index.html" class="brand">
-        <span class="brand-mark">AP</span>
-        ARTES POLAROIDS
+        <img src="images/brand/logo.png" alt="Artes Polaroids" class="brand-logo">
       </a>
       <nav class="main-nav" id="mainNav">${navHtml}</nav>
       <div class="header-actions">
