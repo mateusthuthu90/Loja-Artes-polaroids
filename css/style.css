@@ -193,9 +193,15 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
   box-shadow: var(--shadow-sm);
 }
 .brand-logo{
-  height: 34px;
-  width: auto;
+  height: 44px;
+  width: 44px;
+  border-radius: 50%;
+  object-fit: cover;
   display:block;
+  box-shadow: var(--shadow-sm);
+}
+.footer-brand .brand-logo{
+  border: 2px solid rgba(255,255,255,0.14);
 }
 
 .main-nav{ display:flex; align-items:center; gap: 30px; }

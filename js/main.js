@@ -45,7 +45,7 @@ function renderFooter(){
     <div class="footer-inner">
       <div class="footer-brand">
         <div class="brand">
-          <span class="brand-mark">AP</span>
+          <img src="images/brand/logo.png" alt="Artes Polaroids" class="brand-logo">
           ARTES POLAROIDS
         </div>
         <p>Transformamos suas fotos favoritas em lembranças que duram para sempre. Polaroids, quadros, chaveiros e presentes feitos com carinho.</p>
@@ -60,7 +60,7 @@ function renderFooter(){
       <div class="footer-col">
         <h4>Contato</h4>
         <a href="https://wa.me/5533999999999" target="_blank" rel="noopener">WhatsApp: (33) 99999-9999</a>
-        <a href="#">@artespolaroids</a>
+        <a href="https://instagram.com/artes.polaroids" target="_blank" rel="noopener">@artes.polaroids</a>
       </div>
     </div>
     <div class="footer-bottom">
