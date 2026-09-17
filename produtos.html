@@ -52,20 +52,25 @@
   function renderGrid(){
     const list = activeCategory === 'Todos' ? PRODUCTS : PRODUCTS.filter(p => p.category === activeCategory);
     document.getElementById('productGrid').innerHTML = list.map(p => `
-      <a href="produto.html?id=${p.id}" class="product-card fade-in">
-        <div class="product-thumb">
-          ${p.isNew ? '<span class="badge-new">Novidade</span>' : ''}
-          ${productThumbImg(p)}
-        </div>
-        <div class="product-info">
-          <div class="product-category">${p.category}</div>
-          <h3>${p.name}</h3>
-          <p class="desc">${p.shortDesc}</p>
-          <div class="product-price-row">
-            <span class="product-price">${getDisplayPrice(p).label ? `<span class='price-label'>${getDisplayPrice(p).label}</span>` : ''}${getDisplayPrice(p).value}</span>
+      <div class="product-card fade-in">
+        <a href="produto.html?id=${p.id}" class="product-card-link">
+          <div class="product-thumb">
+            ${p.isNew ? '<span class="badge-new">Novidade</span>' : ''}
+            ${productThumbImg(p)}
           </div>
+          <div class="product-info">
+            <div class="product-category">${p.category}</div>
+            <h3>${p.name}</h3>
+            <p class="desc">${p.shortDesc}</p>
+            <div class="product-price-row">
+              <span class="product-price">${getDisplayPrice(p).label ? `<span class='price-label'>${getDisplayPrice(p).label}</span>` : ''}${getDisplayPrice(p).value}</span>
+            </div>
+          </div>
+        </a>
+        <div class="product-card-actions">
+          <button class="btn btn-primary btn-sm btn-block" onclick="quickAddToCart(event,'${p.id}')">Adicionar ao carrinho</button>
         </div>
-      </a>
+      </div>
     `).join('');
   }
 

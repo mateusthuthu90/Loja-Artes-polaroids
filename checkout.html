@@ -46,7 +46,11 @@
     `;
   } else {
     const subtotal = getCartSubtotal();
-    const shipping = getMockShipping(subtotal);
+    const savedShipping = getShipping() || { method: null, fee: 0 };
+    const shipping = savedShipping.method === 'pickup' ? 0 : (savedShipping.fee || 0);
+    const shippingLabel = savedShipping.method === 'pickup'
+      ? 'Retirar na loja'
+      : (shipping === 0 ? 'Grátis' : formatBRL(shipping));
     const total = subtotal + shipping;
     let paymentMethod = 'pix';
 
@@ -127,7 +131,8 @@
             return `<div class="summary-line"><span>${p.name} x${item.quantity}</span><span>${formatBRL(getItemUnitPrice(item)*item.quantity)}</span></div>`;
           }).join('')}
           <div class="summary-line"><span>Subtotal</span><span>${formatBRL(subtotal)}</span></div>
-          <div class="summary-line"><span>Frete</span><span>${shipping === 0 ? 'Grátis' : formatBRL(shipping)}</span></div>
+          <div class="summary-line"><span>Frete</span><span>${shippingLabel}</span></div>
+          ${savedShipping.method === 'delivery' && savedShipping.cep ? `<div class="summary-line"><span>Entregar no CEP</span><span>${savedShipping.cep}</span></div>` : ''}
           <div class="summary-line total"><span>Total</span><span>${formatBRL(total)}</span></div>
           <button class="btn btn-primary btn-block" id="submitOrderBtn" style="margin-top:16px;">Finalizar pedido</button>
           <p style="font-size:0.78rem;color:var(--text-soft);text-align:center;margin-top:10px;">
@@ -169,6 +174,7 @@
       };
       localStorage.setItem('ap_last_order', JSON.stringify(order));
       clearCart();
+      clearShipping();
       window.location.href = 'confirmacao.html';
     });
   }

@@ -52,9 +52,29 @@
     }
 
     const subtotal = getCartSubtotal();
-    const shipping = getMockShipping(subtotal);
     const discount = subtotal * appliedCouponPct;
-    const total = Math.max(0, subtotal - discount + shipping);
+
+    const shipping = getShipping() || { method: null, cep: '', fee: null };
+    let shippingFee = 0;
+    let shippingLabel = 'A calcular';
+    let canCheckout = true;
+
+    if(shipping.method === 'pickup'){
+      shippingFee = 0;
+      shippingLabel = 'Retirar na loja';
+    } else if(shipping.method === 'delivery'){
+      if(shipping.fee !== null && shipping.fee !== undefined){
+        shippingFee = shipping.fee;
+        shippingLabel = shippingFee === 0 ? 'Grátis (acima de R$100)' : formatBRL(shippingFee);
+      } else {
+        shippingLabel = 'Informe o CEP';
+        canCheckout = false;
+      }
+    } else {
+      canCheckout = false;
+    }
+
+    const total = Math.max(0, subtotal - discount + shippingFee);
 
     container.innerHTML = `
       <div class="cart-layout">
@@ -65,7 +85,7 @@
             const optsText = Object.entries(item.selectedOptions || {}).map(([k,v]) => `${k}: ${v}`).join(' · ');
             return `
               <div class="cart-row">
-                <div class="thumb">${p.icon}</div>
+                <div class="thumb">${productThumbImg(p)}</div>
                 <div class="meta">
                   <div class="name">${p.name}</div>
                   ${optsText ? `<div class="opt">${optsText}</div>` : ''}
@@ -87,8 +107,25 @@
           <h3>Resumo do pedido</h3>
           <div class="summary-line"><span>Subtotal</span><span>${formatBRL(subtotal)}</span></div>
           ${discount > 0 ? `<div class="summary-line"><span>Cupom (${appliedCouponCode})</span><span>− ${formatBRL(discount)}</span></div>` : ''}
-          <div class="summary-line"><span>Frete</span><span>${shipping === 0 ? 'Grátis' : formatBRL(shipping)}</span></div>
+          <div class="summary-line"><span>Frete</span><span>${shippingLabel}</span></div>
           <div class="summary-line total"><span>Total</span><span>${formatBRL(total)}</span></div>
+
+          <div class="shipping-block">
+            <label class="group-label" style="display:block;margin-bottom:8px;">Entrega</label>
+            <label class="shipping-option">
+              <input type="radio" name="shipMethod" value="pickup" ${shipping.method === 'pickup' ? 'checked' : ''}>
+              Retirar na loja <span class="tag-free">Grátis</span>
+            </label>
+            <label class="shipping-option">
+              <input type="radio" name="shipMethod" value="delivery" ${shipping.method === 'delivery' ? 'checked' : ''}>
+              Enviar pelo Correios
+            </label>
+            <div id="cepRow" class="cep-row" style="display:${shipping.method === 'delivery' ? 'flex' : 'none'};">
+              <input type="text" id="cepInput" placeholder="Seu CEP" value="${shipping.cep || ''}" maxlength="9">
+              <button class="btn btn-outline btn-sm" id="calcFreteBtn">Calcular</button>
+            </div>
+            <div id="freteMsg"></div>
+          </div>
 
           <div class="coupon-row">
             <input type="text" id="couponInput" placeholder="Cupom de desconto">
@@ -96,13 +133,21 @@
           </div>
           <div id="couponMsg"></div>
 
-          <a href="checkout.html" class="btn btn-primary btn-block" style="margin-top:16px;">Continuar para pagamento</a>
+          <a href="${canCheckout ? 'checkout.html' : '#'}" class="btn btn-primary btn-block ${canCheckout ? '' : 'btn-disabled'}" style="margin-top:16px;" id="goCheckoutBtn">Continuar para pagamento</a>
           <p style="font-size:0.78rem;color:var(--text-soft);text-align:center;margin-top:10px;">
             Frete grátis para compras acima de R$ 100,00
           </p>
         </div>
       </div>
     `;
+
+    const goCheckoutBtn = document.getElementById('goCheckoutBtn');
+    if(goCheckoutBtn && !canCheckout){
+      goCheckoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('⚠️ Escolha uma forma de entrega antes de continuar');
+      });
+    }
 
     container.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -114,6 +159,32 @@
         renderCart();
       });
     });
+
+    container.querySelectorAll('input[name="shipMethod"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if(radio.value === 'pickup'){
+          setShipping({ method: 'pickup', cep: '', fee: 0 });
+        } else {
+          setShipping({ method: 'delivery', cep: shipping.cep || '', fee: null });
+        }
+        renderCart();
+      });
+    });
+
+    const calcFreteBtn = document.getElementById('calcFreteBtn');
+    if(calcFreteBtn){
+      calcFreteBtn.addEventListener('click', () => {
+        const cep = document.getElementById('cepInput').value;
+        const fee = calculateShippingFee(cep, subtotal);
+        const msgEl = document.getElementById('freteMsg');
+        if(fee === null){
+          msgEl.innerHTML = `<div class="coupon-msg err">CEP inválido. Digite os 8 números do seu CEP.</div>`;
+          return;
+        }
+        setShipping({ method: 'delivery', cep, fee });
+        renderCart();
+      });
+    }
 
     const applyCouponBtn = document.getElementById('applyCouponBtn');
     if(applyCouponBtn){

@@ -214,15 +214,20 @@
   const fallback = PRODUCTS.filter(p => p.id !== product.id).slice(0,3);
   const relatedList = related.length ? related : fallback;
   document.getElementById('relatedGrid').innerHTML = relatedList.map(p => `
-    <a href="produto.html?id=${p.id}" class="product-card">
-      <div class="product-thumb">${productThumbImg(p)}</div>
-      <div class="product-info">
-        <div class="product-category">${p.category}</div>
-        <h3>${p.name}</h3>
-        <p class="desc">${p.shortDesc}</p>
-        <div class="product-price-row"><span class="product-price">${getDisplayPrice(p).label ? `<span class='price-label'>${getDisplayPrice(p).label}</span>` : ''}${getDisplayPrice(p).value}</span></div>
+    <div class="product-card">
+      <a href="produto.html?id=${p.id}" class="product-card-link">
+        <div class="product-thumb">${productThumbImg(p)}</div>
+        <div class="product-info">
+          <div class="product-category">${p.category}</div>
+          <h3>${p.name}</h3>
+          <p class="desc">${p.shortDesc}</p>
+          <div class="product-price-row"><span class="product-price">${getDisplayPrice(p).label ? `<span class='price-label'>${getDisplayPrice(p).label}</span>` : ''}${getDisplayPrice(p).value}</span></div>
+        </div>
+      </a>
+      <div class="product-card-actions">
+        <button class="btn btn-primary btn-sm btn-block" onclick="quickAddToCart(event,'${p.id}')">Adicionar ao carrinho</button>
       </div>
-    </a>
+    </div>
   `).join('');
 </script>
 </body>

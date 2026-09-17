@@ -40,6 +40,24 @@ function getItemUnitPrice(item){
   return p ? p.price : 0;
 }
 
+// Adiciona ao carrinho direto pelo card do produto (sem abrir a página de detalhe).
+// Para produtos com preço por quantidade, usa o menor kit como padrão.
+function quickAddToCart(event, productId){
+  event.preventDefault();
+  event.stopPropagation();
+  const p = findProduct(productId);
+  if(!p) return;
+  if(p.tiers && p.tiers.length){
+    const t = p.tiers[0];
+    addToCart(p.id, 1, { Kit: `${t.qty} unidades` }, t.price);
+  } else {
+    addToCart(p.id, 1, {});
+  }
+  if(typeof showToast === 'function'){
+    showToast(`✅ ${p.name} adicionado ao carrinho`);
+  }
+}
+
 function updateCartItemQty(index, delta){
   const cart = getCart();
   if(!cart[index]) return;
@@ -86,6 +104,36 @@ function applyCouponMock(code){
 function getMockShipping(subtotal){
   if(subtotal === 0) return 0;
   return subtotal >= 100 ? 0 : 14.90;
+}
+
+// ---- Entrega: retirada presencial ou frete calculado por CEP (mockado) ----
+const SHIPPING_KEY = 'ap_shipping_v1';
+
+function getShipping(){
+  try{
+    return JSON.parse(localStorage.getItem(SHIPPING_KEY)) || null;
+  }catch(e){
+    return null;
+  }
+}
+
+function setShipping(obj){
+  localStorage.setItem(SHIPPING_KEY, JSON.stringify(obj));
+}
+
+function clearShipping(){
+  localStorage.removeItem(SHIPPING_KEY);
+}
+
+// Calcula um frete mockado a partir do CEP (determinístico, sem API dos Correios ainda).
+// Retorna null se o CEP for inválido (menos de 8 dígitos).
+function calculateShippingFee(cep, subtotal){
+  if(subtotal >= 100) return 0; // frete grátis acima de R$100, mesmo com entrega
+  const digits = (cep || '').replace(/\D/g, '');
+  if(digits.length < 8) return null;
+  const sum = digits.split('').reduce((a, d) => a + parseInt(d, 10), 0);
+  const fee = 12 + (sum % 10); // varia entre R$12 e R$21, só pra dar sensação de cálculo real
+  return Math.round(fee * 100) / 100;
 }
 
 function updateCartBadge(){
