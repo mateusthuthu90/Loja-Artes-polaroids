@@ -59,7 +59,7 @@ function renderFooter(){
       </div>
       <div class="footer-col">
         <h4>Contato</h4>
-        <a href="https://wa.me/5533999999999" target="_blank" rel="noopener">WhatsApp: (33) 99999-9999</a>
+        <a href="https://wa.me/5533998035543" target="_blank" rel="noopener">WhatsApp: (33) 99803-5543</a>
         <a href="https://instagram.com/artes.polaroids" target="_blank" rel="noopener">@artes.polaroids</a>
       </div>
     </div>
