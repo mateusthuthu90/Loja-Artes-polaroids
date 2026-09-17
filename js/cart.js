@@ -19,17 +19,25 @@ function saveCart(cart){
   updateCartBadge();
 }
 
-// item = { productId, quantity, selectedOptions: {Formato:'Retrato', ...} }
-function addToCart(productId, quantity, selectedOptions){
+// item = { productId, quantity, selectedOptions: {Formato:'Retrato', ...}, unitPrice }
+// unitPrice é opcional: usado quando o preço do item varia (ex: kits com desconto por quantidade).
+// Se não vier, usa o preço padrão do catálogo (findProduct(id).price).
+function addToCart(productId, quantity, selectedOptions, unitPrice){
   const cart = getCart();
   const optKey = JSON.stringify(selectedOptions || {});
   const existing = cart.find(i => i.productId === productId && JSON.stringify(i.selectedOptions||{}) === optKey);
   if(existing){
     existing.quantity += quantity;
   } else {
-    cart.push({ productId, quantity, selectedOptions: selectedOptions || {} });
+    cart.push({ productId, quantity, selectedOptions: selectedOptions || {}, unitPrice: unitPrice ?? null });
   }
   saveCart(cart);
+}
+
+function getItemUnitPrice(item){
+  const p = findProduct(item.productId);
+  if(item.unitPrice !== undefined && item.unitPrice !== null) return item.unitPrice;
+  return p ? p.price : 0;
 }
 
 function updateCartItemQty(index, delta){
@@ -59,8 +67,7 @@ function getCartCount(){
 
 function getCartSubtotal(){
   return getCart().reduce((sum, i) => {
-    const p = findProduct(i.productId);
-    return sum + (p ? p.price * i.quantity : 0);
+    return sum + (getItemUnitPrice(i) * i.quantity);
   }, 0);
 }
 

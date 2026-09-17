@@ -145,14 +145,14 @@
     <a href="produto.html?id=${p.id}" class="product-card">
       <div class="product-thumb">
         ${p.isNew ? '<span class="badge-new">Novidade</span>' : ''}
-        ${p.icon}
+        ${productThumbImg(p)}
       </div>
       <div class="product-info">
         <div class="product-category">${p.category}</div>
         <h3>${p.name}</h3>
         <p class="desc">${p.shortDesc}</p>
         <div class="product-price-row">
-          <span class="product-price">${formatBRL(p.price)}</span>
+          <span class="product-price">${getDisplayPrice(p).label ? `<span class='price-label'>${getDisplayPrice(p).label}</span>` : ''}${getDisplayPrice(p).value}</span>
         </div>
       </div>
     </a>

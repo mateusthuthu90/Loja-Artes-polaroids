@@ -124,7 +124,7 @@
           ${cart.map(item => {
             const p = findProduct(item.productId);
             if(!p) return '';
-            return `<div class="summary-line"><span>${p.name} x${item.quantity}</span><span>${formatBRL(p.price*item.quantity)}</span></div>`;
+            return `<div class="summary-line"><span>${p.name} x${item.quantity}</span><span>${formatBRL(getItemUnitPrice(item)*item.quantity)}</span></div>`;
           }).join('')}
           <div class="summary-line"><span>Subtotal</span><span>${formatBRL(subtotal)}</span></div>
           <div class="summary-line"><span>Frete</span><span>${shipping === 0 ? 'Grátis' : formatBRL(shipping)}</span></div>
@@ -160,7 +160,7 @@
         orderNumber,
         items: cart.map(item => {
           const p = findProduct(item.productId);
-          return { name: p.name, quantity: item.quantity, price: p.price, options: item.selectedOptions };
+          return { name: p.name, quantity: item.quantity, price: getItemUnitPrice(item), options: item.selectedOptions };
         }),
         subtotal, shipping, total,
         paymentMethod,

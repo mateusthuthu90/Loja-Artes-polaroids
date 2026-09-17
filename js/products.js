@@ -7,43 +7,22 @@
 
 const PRODUCTS = [
   {
-    id: 'kit-10-polaroids',
+    id: 'polaroid-retro',
     category: 'Polaroids',
-    name: 'Kit 10 Polaroids',
-    shortDesc: 'Suas 10 fotos favoritas reveladas no clássico formato polaroid.',
-    fullDesc: 'Um kit compacto e delicado com 10 fotos suas reveladas em papel fosco premium, no tradicional formato polaroid com borda branca. Perfeito para guardar na carteira, montar um mural ou presentear alguém especial.',
-    price: 17.00,
+    name: 'Polaroid Retrô',
+    shortDesc: 'Polaroid borda branca 7x8cm. Formato ideal para fotos quadradas.',
+    fullDesc: 'Para esse modelo, as fotos deverão estar no formato quadrado. Caso não estejam nesse formato, poderá haver cortes indesejados na hora da produção.\n\nNossas fotos são reveladas em papel fotográfico profissional Fujifilm brilhoso! Elas são à prova d\'água, não amarelam e não desbotam com o tempo!',
+    price: 20.00,
     icon: '📷',
+    images: ['images/products/polaroid-retro-1.jpg', 'images/products/polaroid-retro-2.jpg'],
     isNew: true,
-    options: {
-      Formato: ['Retrato', 'Paisagem'],
-    },
-  },
-  {
-    id: 'kit-20-polaroids',
-    category: 'Polaroids',
-    name: 'Kit 20 Polaroids',
-    shortDesc: 'O dobro de memórias para reviver quando quiser.',
-    fullDesc: 'Kit com 20 fotos reveladas em formato polaroid, papel fosco de alta definição e cores fiéis. Ideal para quem quer contar uma história maior — uma viagem, um relacionamento, um ano inteiro de momentos.',
-    price: 32.00,
-    icon: '📷',
-    isNew: false,
-    options: {
-      Formato: ['Retrato', 'Paisagem'],
-    },
-  },
-  {
-    id: 'kit-50-polaroids',
-    category: 'Polaroids',
-    name: 'Kit 50 Polaroids',
-    shortDesc: 'Para quem tem muitas memórias para guardar.',
-    fullDesc: 'O nosso maior kit de polaroids: 50 fotos reveladas com todo o cuidado de sempre. Ótimo para presentear em datas especiais ou criar um mural completo de recordações.',
-    price: 75.00,
-    icon: '📷',
-    isNew: false,
-    options: {
-      Formato: ['Retrato', 'Paisagem'],
-    },
+    tiers: [
+      { qty: 10, price: 20.00 },
+      { qty: 20, price: 40.00 },
+      { qty: 50, price: 90.00 },
+      { qty: 100, price: 170.00 },
+    ],
+    options: {},
   },
   {
     id: 'quadro-polaroid-mesa',
@@ -127,4 +106,21 @@ function findProduct(id){
 
 function formatBRL(value){
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Para produtos com preço por quantidade (tiers), mostra o menor preço com "A partir de"
+function getDisplayPrice(product){
+  if(product.tiers && product.tiers.length){
+    const min = Math.min(...product.tiers.map(t => t.price));
+    return { label: 'A partir de', value: formatBRL(min) };
+  }
+  return { label: '', value: formatBRL(product.price) };
+}
+
+// Retorna o HTML da miniatura: foto real se existir, senão o emoji/gradiente padrão
+function productThumbImg(product){
+  if(product.images && product.images[0]){
+    return `<img src="${product.images[0]}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;">`;
+  }
+  return product.icon;
 }

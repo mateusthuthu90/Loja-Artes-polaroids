@@ -69,14 +69,14 @@
                 <div class="meta">
                   <div class="name">${p.name}</div>
                   ${optsText ? `<div class="opt">${optsText}</div>` : ''}
-                  <div class="unit-price">${formatBRL(p.price)} cada</div>
+                  <div class="unit-price">${formatBRL(getItemUnitPrice(item))} cada</div>
                 </div>
                 <div class="qty-box">
                   <button data-action="minus" data-index="${index}">−</button>
                   <span>${item.quantity}</span>
                   <button data-action="plus" data-index="${index}">+</button>
                 </div>
-                <div class="row-total">${formatBRL(p.price * item.quantity)}</div>
+                <div class="row-total">${formatBRL(getItemUnitPrice(item) * item.quantity)}</div>
                 <button class="remove-btn" data-action="remove" data-index="${index}" title="Remover">🗑️</button>
               </div>
             `;
