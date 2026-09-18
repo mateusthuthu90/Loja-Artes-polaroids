@@ -40,22 +40,31 @@ function getItemUnitPrice(item){
   return p ? p.price : 0;
 }
 
-// Adiciona ao carrinho direto pelo card do produto (sem abrir a página de detalhe).
-// Para produtos com preço por quantidade, usa o menor kit como padrão.
-function quickAddToCart(event, productId){
+// Clique no botão "Comprar" dos cards (listagem/relacionados).
+// Produtos com preço por quantidade (tiers) precisam da escolha na página do produto primeiro.
+// Produtos simples abrem uma mini confirmação antes de adicionar.
+function handleBuyClick(event, productId){
   event.preventDefault();
   event.stopPropagation();
   const p = findProduct(productId);
   if(!p) return;
+
   if(p.tiers && p.tiers.length){
-    const t = p.tiers[0];
-    addToCart(p.id, 1, { Kit: `${t.qty} unidades` }, t.price);
-  } else {
-    addToCart(p.id, 1, {});
+    window.location.href = `produto.html?id=${p.id}`;
+    return;
   }
-  if(typeof showToast === 'function'){
-    showToast(`✅ ${p.name} adicionado ao carrinho`);
-  }
+
+  showPurchaseModal({
+    icon: '🛍️',
+    title: 'Adicionar ao carrinho?',
+    message: `${p.name} — ${formatBRL(p.price)}`,
+    primaryLabel: 'Adicionar ao carrinho',
+    secondaryLabel: 'Continuar comprando',
+    onPrimary: () => {
+      addToCart(p.id, 1, {});
+      if(typeof showToast === 'function') showToast(`✅ ${p.name} adicionado ao carrinho`);
+    }
+  });
 }
 
 function updateCartItemQty(index, delta){

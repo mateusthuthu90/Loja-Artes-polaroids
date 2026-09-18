@@ -143,7 +143,7 @@
         </div>` : ''}
 
         <div class="detail-actions">
-          <button class="btn btn-primary btn-block" id="addToCartBtn">Adicionar ao carrinho</button>
+          <button class="btn btn-primary btn-block" id="addToCartBtn">Comprar</button>
         </div>
       </div>
     `;
@@ -189,13 +189,23 @@
     }
 
     document.getElementById('addToCartBtn').addEventListener('click', () => {
+      let qtyLabel;
       if(hasTiers){
         const opts = { ...selectedOptions, Kit: `${selectedTier.qty} unidades` };
         addToCart(product.id, 1, opts, selectedTier.price);
+        qtyLabel = `${selectedTier.qty} unidades`;
       } else {
         addToCart(product.id, quantity, selectedOptions);
+        qtyLabel = `${quantity}x`;
       }
-      showToast(`✅ ${product.name} adicionado ao carrinho`);
+      showPurchaseModal({
+        icon: '🎉',
+        title: 'Adicionado ao carrinho!',
+        message: `${product.name} — ${qtyLabel}`,
+        primaryLabel: 'Ir para o carrinho',
+        secondaryLabel: 'Continuar comprando',
+        onPrimary: () => { window.location.href = 'carrinho.html'; }
+      });
     });
   }
 
@@ -225,7 +235,7 @@
         </div>
       </a>
       <div class="product-card-actions">
-        <button class="btn btn-primary btn-sm btn-block" onclick="quickAddToCart(event,'${p.id}')">Adicionar ao carrinho</button>
+        <button class="btn btn-primary btn-sm btn-block" onclick="handleBuyClick(event,'${p.id}')">Comprar</button>
       </div>
     </div>
   `).join('');

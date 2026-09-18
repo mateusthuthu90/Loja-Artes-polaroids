@@ -85,6 +85,45 @@ function showToast(message){
   toast._timer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
+function showPurchaseModal(options){
+  let modal = document.getElementById('purchaseModal');
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'purchaseModal';
+    modal.className = 'purchase-modal-overlay';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if(e.target === modal) closePurchaseModal();
+    });
+  }
+  modal.innerHTML = `
+    <div class="purchase-modal-box">
+      <div class="purchase-modal-icon">${options.icon || '🛍️'}</div>
+      <h3>${options.title}</h3>
+      <p>${options.message || ''}</p>
+      <div class="purchase-modal-actions">
+        <button class="btn btn-primary btn-block" id="pmPrimary">${options.primaryLabel}</button>
+        <button class="btn btn-outline btn-block" id="pmSecondary">${options.secondaryLabel}</button>
+      </div>
+    </div>
+  `;
+  modal.classList.add('open');
+
+  document.getElementById('pmPrimary').addEventListener('click', () => {
+    closePurchaseModal();
+    if(options.onPrimary) options.onPrimary();
+  });
+  document.getElementById('pmSecondary').addEventListener('click', () => {
+    closePurchaseModal();
+    if(options.onSecondary) options.onSecondary();
+  });
+}
+
+function closePurchaseModal(){
+  const modal = document.getElementById('purchaseModal');
+  if(modal) modal.classList.remove('open');
+}
+
 function initAccordion(){
   document.querySelectorAll('.accordion-item').forEach(item => {
     const question = item.querySelector('.accordion-question');
