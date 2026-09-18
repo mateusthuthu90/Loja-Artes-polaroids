@@ -11,9 +11,25 @@ function renderHeader(activePage){
     { href: 'contato.html', label: 'Contato', key: 'contato' },
   ];
 
-  const navHtml = nav.map(item => `
-    <a href="${item.href}" class="${activePage === item.key ? 'active' : ''}">${item.label}</a>
-  `).join('');
+  // Categorias reais do catálogo (vem de products.js), usadas no menu suspenso de "Produtos"
+  const navCategories = (typeof CATEGORIES !== 'undefined') ? CATEGORIES.filter(c => c !== 'Todos') : [];
+
+  const navHtml = nav.map(item => {
+    const activeClass = activePage === item.key ? 'active' : '';
+    if(item.key === 'produtos' && navCategories.length){
+      const catLinks = navCategories.map(c => `<a href="produtos.html?cat=${encodeURIComponent(c)}">${c}</a>`).join('');
+      return `
+        <div class="nav-item nav-item-dropdown">
+          <a href="${item.href}" class="${activeClass}">${item.label}</a>
+          <div class="nav-dropdown">
+            <a href="produtos.html">Todos os produtos</a>
+            ${catLinks}
+          </div>
+        </div>
+      `;
+    }
+    return `<div class="nav-item"><a href="${item.href}" class="${activeClass}">${item.label}</a></div>`;
+  }).join('');
 
   const html = `
     <div class="header-inner">

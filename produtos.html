@@ -35,6 +35,11 @@
   renderFooter();
 
   let activeCategory = 'Todos';
+  const urlParams = new URLSearchParams(window.location.search);
+  const catFromUrl = urlParams.get('cat');
+  if(catFromUrl && CATEGORIES.includes(catFromUrl)){
+    activeCategory = catFromUrl;
+  }
 
   function renderCategoryTabs(){
     document.getElementById('categoryTabs').innerHTML = CATEGORIES.map(cat => `
