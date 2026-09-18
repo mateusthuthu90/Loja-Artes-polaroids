@@ -7,11 +7,19 @@
 const CART_KEY = 'ap_cart_v1';
 
 function getCart(){
+  let cart;
   try{
-    return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
   }catch(e){
-    return [];
+    cart = [];
   }
+  // Remove itens que referenciam produtos que não existem mais no catálogo
+  // (ex: kits antigos removidos numa atualização). Mantém o carrinho sempre consistente.
+  const cleaned = cart.filter(i => !!findProduct(i.productId));
+  if(cleaned.length !== cart.length){
+    localStorage.setItem(CART_KEY, JSON.stringify(cleaned));
+  }
+  return cleaned;
 }
 
 function saveCart(cart){
