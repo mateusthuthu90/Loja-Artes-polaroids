@@ -140,7 +140,7 @@
       <a href="produto.html?id=${p.id}" class="product-card-link">
         <div class="product-thumb">
           ${p.isNew ? '<span class="badge-new">Novidade</span>' : ''}
-          ${productThumbImg(p)}
+          ${productCardThumbHtml(p)}
         </div>
         <div class="product-info">
           <div class="product-category">${p.category}</div>

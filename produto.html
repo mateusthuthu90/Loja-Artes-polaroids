@@ -226,7 +226,7 @@
   document.getElementById('relatedGrid').innerHTML = relatedList.map(p => `
     <div class="product-card">
       <a href="produto.html?id=${p.id}" class="product-card-link">
-        <div class="product-thumb">${productThumbImg(p)}</div>
+        <div class="product-thumb">${productCardThumbHtml(p)}</div>
         <div class="product-info">
           <div class="product-category">${p.category}</div>
           <h3>${p.name}</h3>

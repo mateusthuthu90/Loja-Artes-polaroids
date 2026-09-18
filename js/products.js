@@ -88,11 +88,12 @@ const PRODUCTS = [
   {
     id: 'caixa-surpresa',
     category: 'Presentes',
-    name: 'Caixa Surpresa Personalizada',
-    shortDesc: 'Uma caixinha cheia de polaroids e mensagens.',
-    fullDesc: 'Caixa temática recheada com polaroids, mensagens surpresa e pequenos mimos. Ideal para presentear em aniversários, aniversários de namoro ou só porque sim.',
-    price: 59.90,
+    name: 'Box Amor Para Vida Toda',
+    shortDesc: 'Caixa surpresa personalizada com fotos e chaveiros. 10x10x5cm.',
+    fullDesc: 'Acompanha 10 fotos reveladas no estilo retrô e 2 chaveirinhos personalizados com as frases "Quero ser seu" e "Por onde for", formando a frase "Quero ser seu par, por onde for".\n\nVem em um saquinho de organza, com enchimento de palha dentro da caixa.\n\nDimensões da caixa: 10x10x5cm de altura.',
+    price: 54.90,
     icon: '🎁',
+    images: ['images/products/box-amor-1.jpg', 'images/products/box-amor-2.jpg', 'images/products/box-amor-3.jpg'],
     isNew: false,
     options: {},
   },
@@ -123,4 +124,16 @@ function productThumbImg(product){
     return `<img src="${product.images[0]}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;">`;
   }
   return product.icon;
+}
+
+// Miniatura usada nos cards de listagem: se o produto tiver 2+ fotos,
+// monta duas camadas empilhadas pra trocar a foto no hover (efeito comum em lojas).
+function productCardThumbHtml(product){
+  if(product.images && product.images.length > 1){
+    return `
+      <img src="${product.images[0]}" alt="${product.name}" class="thumb-img thumb-img-1">
+      <img src="${product.images[1]}" alt="${product.name}" class="thumb-img thumb-img-2">
+    `;
+  }
+  return productThumbImg(product);
 }
