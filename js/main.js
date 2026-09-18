@@ -53,7 +53,26 @@ function renderHeader(activePage){
     document.getElementById('mainNav').classList.toggle('mobile-open');
   });
 
+  initNavDropdowns();
   updateCartBadge();
+}
+
+function initNavDropdowns(){
+  document.querySelectorAll('.nav-item-dropdown').forEach(item => {
+    const dropdown = item.querySelector('.nav-dropdown');
+    if(!dropdown) return;
+    let closeTimer;
+
+    item.addEventListener('mouseenter', () => {
+      clearTimeout(closeTimer);
+      dropdown.classList.add('force-open');
+    });
+    item.addEventListener('mouseleave', () => {
+      closeTimer = setTimeout(() => {
+        dropdown.classList.remove('force-open');
+      }, 400); // dá tempo do mouse descer até o menu sem ele sumir antes da hora
+    });
+  });
 }
 
 function renderFooter(){
