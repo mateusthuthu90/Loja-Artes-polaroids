@@ -102,7 +102,7 @@ const PRODUCTS = [
     id: 'front-page-love',
     category: 'Quadros',
     name: 'Front Page Love',
-    shortDesc: 'Quadro & porta-retrato inspirado em jornais, acabamento premium.',
+    shortDesc: 'Quadro & porta-retrato personalizado.',
     fullDesc: 'Um quadro exclusivo inspirado em capas de jornal, criado para eternizar momentos e sentimentos especiais de um jeito criativo e elegante. Perfeito para presentear ou decorar com significado.\n\nAcabamento premium, com vidro de proteção.',
     price: 49.90,
     icon: '🗞️',
