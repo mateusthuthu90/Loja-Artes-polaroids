@@ -193,15 +193,13 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
   box-shadow: var(--shadow-sm);
 }
 .brand-logo{
-  height: 44px;
-  width: 44px;
-  border-radius: 50%;
-  object-fit: cover;
+  height: 72px;
+  width: auto;
+  object-fit: contain;
   display:block;
-  box-shadow: var(--shadow-sm);
 }
 .footer-brand .brand-logo{
-  border: 1px solid var(--border);
+  height: 80px;
 }
 
 .main-nav{ display:flex; align-items:center; gap: 30px; }
@@ -264,6 +262,9 @@ h1,h2,h3,h4{ font-family: var(--font-display); font-weight:600; color:var(--text
     background: var(--bg); border-bottom: 1px solid var(--border);
     padding: 18px 24px; gap: 16px; box-shadow: var(--shadow-md);
   }
+  /* no celular a logo cede espaço pro carrinho e o botão de menu */
+  .brand-logo{ height: 56px; }
+  .footer-brand .brand-logo{ height: 64px; }
 }
 
 /* ---------------- HERO ---------------- */

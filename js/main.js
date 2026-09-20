@@ -81,7 +81,6 @@ function renderFooter(){
       <div class="footer-brand">
         <div class="brand">
           <img src="images/brand/logo.png" alt="Artes Polaroids" class="brand-logo">
-          ARTES POLAROIDS
         </div>
         <p>Transformamos suas fotos favoritas em lembranças que duram para sempre. Polaroids, quadros, chaveiros e presentes feitos com carinho.</p>
       </div>
