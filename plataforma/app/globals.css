@@ -52,3 +52,290 @@ h4 {
   font-family: var(--font-display);
   line-height: 1.2;
 }
+
+/* ==========================================================================
+   Banner da home (components/loja/BannerHero.tsx)
+
+   As fotos do estudio sao verticais/quadradas, entao nada de imagem sangrada:
+   cada slide monta uma composicao de polaroids sobre um palco com parallax.
+   Todo o movimento cai fora em prefers-reduced-motion.
+   ========================================================================== */
+@theme {
+  /* terracota escurecido para o destaque do titulo: 3.89:1 sobre o creme,
+     suficiente para texto grande (AA large) */
+  --color-terracota-escuro: #9c6a4f;
+  /* o selo tem 12.5px, entao precisa de 4.5:1: este da 4.57:1 sobre o terracota-claro */
+  --color-terracota-profundo: #8a5a41;
+  --font-manuscrita: var(--font-caveat), "Segoe Script", cursive;
+}
+
+/* registrada para o halo poder transicionar de cor entre os slides */
+@property --halo {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(185, 132, 106, 0.26);
+}
+
+.bh {
+  --px: 0;
+  --py: 0;
+  transition: --halo 900ms ease;
+}
+
+.bh-halo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(48% 55% at 74% 34%, var(--halo), transparent 68%),
+    radial-gradient(40% 46% at 12% 82%, rgba(240, 226, 213, 0.5), transparent 70%);
+}
+
+/* ---------- camadas empilhadas (texto e palco) ---------- */
+.bh-texto,
+.bh-cena {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.55s ease, visibility 0s linear 0.55s;
+}
+
+.bh-texto.bh-on,
+.bh-cena.bh-on {
+  z-index: 2;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.55s ease, visibility 0s;
+}
+
+/* ---------- entrada escalonada do texto ---------- */
+.bh-texto .bh-item {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.bh-texto.bh-on .bh-item {
+  animation: bh-subir 0.7s cubic-bezier(0.22, 0.8, 0.26, 1) forwards;
+}
+
+.bh-texto.bh-on .bh-item:nth-child(1) { animation-delay: 0.06s; }
+.bh-texto.bh-on .bh-item:nth-child(2) { animation-delay: 0.16s; }
+.bh-texto.bh-on .bh-item:nth-child(3) { animation-delay: 0.26s; }
+.bh-texto.bh-on .bh-item:nth-child(4) { animation-delay: 0.36s; }
+
+.bh-destaque {
+  font-style: italic;
+  color: var(--color-terracota-escuro);
+}
+
+/* ---------- palco ---------- */
+.bh-palco {
+  --w: clamp(212px, 56vw, 320px);
+  position: relative;
+  min-height: calc(var(--w) * 1.58);
+}
+
+@media (min-width: 768px) {
+  .bh-palco {
+    --w: clamp(258px, 31vw, 352px);
+  }
+}
+
+/* pilha de papel atras: puro CSS, nenhuma imagem extra */
+.bh-pilha {
+  grid-area: 1 / 1;
+  position: relative;
+}
+
+.bh-pilha span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--w);
+  height: calc(var(--w) * 1.34);
+  margin-left: calc(var(--w) / -2);
+  margin-top: calc(var(--w) * -0.72);
+  border-radius: 5px;
+  background: #fffdf8;
+  box-shadow: 0 10px 26px rgba(54, 42, 31, 0.1);
+}
+
+.bh-pilha span:nth-child(1) { transform: rotate(-9deg) translate(-12px, 8px); }
+.bh-pilha span:nth-child(2) { transform: rotate(6deg) translate(15px, -5px); }
+
+/* ---------- parallax: cada camada com seu proprio fator --f ---------- */
+.bh-flutua {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--w);
+  margin-left: calc(var(--w) / -2);
+  margin-top: calc(var(--w) * -0.74);
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+  transform: translate3d(calc(var(--px) * var(--f)), calc(var(--py) * var(--f) * 0.62), 0);
+}
+
+.bh-flutua--apoio {
+  width: calc(var(--w) * 0.5);
+  top: auto;
+  bottom: calc(var(--w) * -0.04);
+  margin-top: 0;
+  margin-left: calc(var(--w) * 0.14);
+}
+
+/* ---------- a polaroid ---------- */
+.bh-polaroid {
+  position: relative;
+  padding: 13px 13px 0;
+  border-radius: 5px;
+  background: linear-gradient(160deg, #fffdf8, #fbf5ea);
+  box-shadow: 0 22px 48px rgba(54, 42, 31, 0.2), 0 2px 6px rgba(54, 42, 31, 0.1);
+  opacity: 0;
+  transform: rotate(var(--giro));
+}
+
+.bh-cena.bh-on .bh-polaroid {
+  animation: bh-revelar 0.9s cubic-bezier(0.16, 0.84, 0.28, 1) forwards;
+}
+
+.bh-cena.bh-on .bh-polaroid--apoio {
+  animation: bh-revelar 1s cubic-bezier(0.16, 0.84, 0.28, 1) 0.14s forwards;
+}
+
+.bh-polaroid--apoio {
+  padding: 9px 9px 24px;
+  box-shadow: 0 14px 30px rgba(54, 42, 31, 0.18);
+}
+
+/* fita adesiva segurando a foto principal */
+.bh-fita {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 30%;
+  height: 24px;
+  margin-left: -15%;
+  z-index: 4;
+  transform: rotate(-3deg);
+  background: linear-gradient(105deg, rgba(232, 205, 150, 0.92), rgba(224, 203, 178, 0.82));
+  border-left: 1px dashed rgba(92, 69, 52, 0.18);
+  border-right: 1px dashed rgba(92, 69, 52, 0.18);
+  box-shadow: 0 3px 9px rgba(54, 42, 31, 0.16);
+}
+
+.bh-foto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #e9e0d1;
+}
+
+/* ken burns lento: a foto "respira" enquanto o slide esta no ar */
+.bh-cena.bh-on .bh-kb {
+  animation: bh-kenburns 9s cubic-bezier(0.24, 0.6, 0.3, 1) both;
+}
+
+.bh-legenda {
+  padding: 13px 8px 15px 7px;
+  font-family: var(--font-manuscrita);
+  font-size: 1.5rem;
+  line-height: 1;
+  text-align: left;
+  color: #9a8a76;
+}
+
+/* ---------- controles ---------- */
+.bh-seta {
+  display: inline-flex;
+  height: 38px;
+  width: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-borda);
+  background: var(--color-cartao);
+  color: var(--color-texto);
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.bh-seta:hover {
+  border-color: var(--color-terracota);
+  color: var(--color-terracota-escuro);
+  transform: translateY(-1px);
+}
+
+.bh-dot {
+  padding: 9px 0;
+  cursor: pointer;
+}
+
+.bh-trilho {
+  display: block;
+  height: 4px;
+  width: 44px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(92, 69, 52, 0.22);
+  transition: width 0.35s ease, background 0.35s ease;
+}
+
+.bh-dot:hover .bh-trilho { background: rgba(92, 69, 52, 0.28); }
+.bh-dot[aria-current="true"] .bh-trilho { width: 76px; }
+
+.bh-preenche {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--color-terracota-escuro);
+  animation-name: bh-progresso;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.bh-seta:focus-visible,
+.bh-dot:focus-visible .bh-trilho {
+  outline: 2px solid var(--color-terracota-escuro);
+  outline-offset: 3px;
+}
+
+/* ---------- keyframes ---------- */
+@keyframes bh-subir {
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes bh-revelar {
+  from { opacity: 0; transform: rotate(calc(var(--giro) * 3.4)) translateY(36px) scale(0.9); }
+  to   { opacity: 1; transform: rotate(var(--giro)) translateY(0) scale(1); }
+}
+
+@keyframes bh-kenburns {
+  from { transform: scale(1.16); }
+  to   { transform: scale(1.02); }
+}
+
+@keyframes bh-progresso {
+  to { transform: scaleX(1); }
+}
+
+/* ---------- sem movimento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bh-texto .bh-item,
+  .bh-polaroid {
+    opacity: 1;
+    transform: rotate(var(--giro, 0deg));
+  }
+
+  .bh-texto.bh-on .bh-item,
+  .bh-cena.bh-on .bh-polaroid,
+  .bh-cena.bh-on .bh-polaroid--apoio,
+  .bh-cena.bh-on .bh-kb {
+    animation: none;
+  }
+
+  .bh-texto .bh-item { transform: none; }
+  .bh-flutua { transition: none; }
+  .bh-preenche { animation: none; transform: scaleX(1); }
+  .bh { transition: none; }
+}

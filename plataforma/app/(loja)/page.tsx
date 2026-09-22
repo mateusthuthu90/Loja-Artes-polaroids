@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
+import { BannerHero } from "@/components/loja/BannerHero";
 import { GradeProdutos } from "@/components/loja/CardProduto";
-import { CabecalhoSecao, Selo, botaoContorno, botaoPrimario } from "@/components/loja/ui";
+import { CabecalhoSecao, botaoContorno } from "@/components/loja/ui";
 import { Icone, type NomeIcone } from "@/components/Icone";
+import { montarSlides } from "@/lib/banners";
 import { categoriasComProdutos, lerConfig, listarProdutos } from "@/lib/catalogo";
 
 export const revalidate = 60;
@@ -22,38 +23,11 @@ export default async function Home() {
   ]);
   const nomes = new Map(categorias.map((c) => [c.id, c.nome]));
   const destaques = [...produtos.filter((p) => p.destaque), ...produtos.filter((p) => !p.destaque)].slice(0, 8);
-  const banner = config.banner_home;
 
   return (
     <>
       {/* HERO */}
-      <section className="overflow-hidden pb-16 pt-10 sm:pb-24 sm:pt-16">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-[1.05fr_0.95fr]">
-          <div>
-            <Selo>Lembranças personalizadas</Selo>
-            <h1 className="text-4xl font-semibold sm:text-5xl">{banner.titulo}</h1>
-            <p className="mt-4 max-w-lg text-lg text-texto-suave">{banner.subtitulo}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/produtos" className={botaoPrimario}>
-                Escolher meus produtos
-              </Link>
-              <Link href="#como-funciona" className={botaoContorno}>
-                Como funciona
-              </Link>
-            </div>
-          </div>
-          <div className="relative aspect-[4/3.1] overflow-hidden rounded-grande shadow-forte">
-            <Image
-              src={banner.imagem}
-              alt="Polaroids reveladas pela Artes Polaroids"
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 540px"
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
+      <BannerHero slides={montarSlides(config)} />
 
       {/* CATEGORIAS */}
       {categorias.length > 1 && (

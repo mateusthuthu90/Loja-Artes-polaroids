@@ -40,3 +40,7 @@ Thumbs.db
 .gemini/
 .kimi/
 .env.example
+
+# Material de trabalho local (nao vai para o repositorio publico)
+/Imagens para banners/
+/Progama e-commerce/
