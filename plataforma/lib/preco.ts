@@ -60,6 +60,17 @@ export function temPrecoVariavel(produto: Produto): boolean {
   return produto.opcoes.some((g) => new Set(g.valores.map((v) => v.acrescimo)).size > 1);
 }
 
+/** Frete do MVP: valor fixo, grátis acima de X. Retirada é sempre grátis. */
+export function calcularFrete(
+  subtotal: number,
+  tipoEntrega: "retirada" | "envio",
+  frete: { valor: number; gratis_acima: number | null },
+): number {
+  if (tipoEntrega === "retirada") return 0;
+  if (frete.gratis_acima !== null && subtotal >= frete.gratis_acima) return 0;
+  return arredondar(Number(frete.valor));
+}
+
 export function esgotado(produto: Produto): boolean {
   return produto.estoque !== null && produto.estoque <= 0;
 }
