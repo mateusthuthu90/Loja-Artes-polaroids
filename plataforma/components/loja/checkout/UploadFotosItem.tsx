@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { Icone } from "@/components/Icone";
 import { processarFoto, type FotoProcessada } from "@/lib/imagem";
 import { createClient } from "@/lib/supabase/client";
 import { FOTO_LADO_MINIMO_RECOMENDADO, FOTO_TAMANHO_MAXIMO } from "@/lib/validacao";
@@ -132,7 +133,7 @@ export function UploadFotosItem({
           }`}
           aria-live="polite"
         >
-          {completo && "✓ "}
+          {completo && <Icone nome="confirmado" className="mr-1 inline h-3.5 w-3.5" />}
           {fotos.length} de {fotosMin === fotosMax ? fotosMax : `${fotosMin}–${fotosMax}`} fotos
         </span>
       </header>
@@ -159,7 +160,7 @@ export function UploadFotosItem({
             arrastando ? "border-terracota bg-terracota-claro" : "border-borda hover:border-terracota hover:bg-creme-claro"
           }`}
         >
-          <span className="mb-2 text-3xl" aria-hidden>📷</span>
+          <Icone nome="camera" className="mb-2 h-8 w-8 text-terracota" />
           <span className="font-semibold">Toque para escolher suas fotos</span>
           <span className="mt-1 text-xs text-texto-suave">
             ou arraste para cá · faltam {vagas} · JPG, PNG, HEIC ou WebP
@@ -199,16 +200,16 @@ export function UploadFotosItem({
                     className="absolute bottom-1 left-1 rounded bg-dourado px-1 text-[0.6rem] font-bold text-[#3a2b0f]"
                     title="Foto com baixa resolução: pode ficar pixelada na impressão"
                   >
-                    ⚠ baixa
+                    baixa
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={() => onRemover(f.caminho)}
                   aria-label={`Remover foto ${f.nome}`}
-                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-texto/70 text-xs text-white"
+                  className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-texto/70 text-white"
                 >
-                  ✕
+                  <Icone nome="fechar" className="h-3 w-3" />
                 </button>
               </li>
             );
@@ -227,9 +228,9 @@ export function UploadFotosItem({
                     type="button"
                     onClick={() => setPendentes((l) => l.filter((x) => x.id !== p.id))}
                     aria-label="Dispensar erro"
-                    className="absolute right-1 top-1 text-xs"
+                    className="absolute right-1 top-1"
                   >
-                    ✕
+                    <Icone nome="fechar" className="h-3 w-3" />
                   </button>
                 </>
               ) : (
@@ -241,8 +242,9 @@ export function UploadFotosItem({
       )}
 
       {fotos.some((f) => f.largura !== null && f.altura !== null && Math.min(f.largura, f.altura) < FOTO_LADO_MINIMO_RECOMENDADO) && (
-        <p className="mt-3 text-xs text-texto-suave">
-          ⚠ Fotos marcadas como <strong>baixa</strong> têm pouca resolução e podem sair pixeladas. Se tiver a original, prefira ela.
+        <p className="mt-3 flex items-start gap-1.5 text-xs text-texto-suave">
+          <Icone nome="alerta" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-dourado" />
+          <span>Fotos marcadas como <strong>baixa</strong> têm pouca resolução e podem sair pixeladas. Se tiver a original, prefira ela.</span>
         </p>
       )}
     </section>

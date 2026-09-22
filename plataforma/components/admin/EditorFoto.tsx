@@ -4,6 +4,7 @@
 // "caber inteira" (diminui a foto e completa com fundo). O quadro tem a mesma
 // proporção da galeria da loja, então o que você vê aqui é o que aparece lá.
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icone } from "@/components/Icone";
 
 const SAIDA_L = 1600;
 const SAIDA_A = 1520; // proporção 1 : 0,95 (galeria e cards da loja)
@@ -180,7 +181,10 @@ export function EditorFoto({ fonte, titulo, onConcluir, onCancelar }: Props) {
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <button type="button" onClick={() => { setZoom(1); setPos({ x: 0, y: 0 }); }} className={botao}>Preencher</button>
               <button type="button" onClick={() => { setZoom(zoomMin); setPos({ x: 0, y: 0 }); }} className={botao}>Caber inteira</button>
-              <button type="button" onClick={girar} className={botao}>↻ Girar</button>
+              <button type="button" onClick={girar} className={`${botao} inline-flex items-center gap-1.5`}>
+                <Icone nome="girar" className="h-4 w-4" />
+                Girar
+              </button>
               <span className="ml-auto flex items-center gap-1 text-xs text-texto-suave">
                 Fundo:
                 {(Object.keys(FUNDOS) as (keyof typeof FUNDOS)[]).map((f) => (

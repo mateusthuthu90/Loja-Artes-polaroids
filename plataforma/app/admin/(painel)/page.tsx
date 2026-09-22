@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icone, type NomeIcone } from "@/components/Icone";
 import { exigirAdmin } from "@/lib/admin/sessao";
 import { COR_STATUS, ROTULO_STATUS } from "@/lib/admin/status";
 import { formatarBRL } from "@/lib/preco";
@@ -52,7 +53,7 @@ export default async function Dashboard() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="text-3xl font-semibold">Olá, {nome}! 👋</h1>
+      <h1 className="text-3xl font-semibold">Olá, {nome}!</h1>
       <p className="mb-6 mt-1 text-texto-suave">Resumo da loja hoje.</p>
 
       <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -65,18 +66,19 @@ export default async function Dashboard() {
       {(estoqueBaixo.length > 0 || rascunhos.length > 0 || (alertas.data ?? []).length > 0) && (
         <section className="mb-8 space-y-2">
           {(alertas.data ?? []).length > 0 && (
-            <Alerta cor="perigo">
-              ⚠ {alertas.data!.length} pedido(s) pago(s) sem estoque suficiente. Fale com o cliente.
+            <Alerta cor="perigo" icone="alerta">
+              {alertas.data!.length} pedido(s) pago(s) sem estoque suficiente. Fale com o cliente.
             </Alerta>
           )}
           {estoqueBaixo.length > 0 && (
-            <Alerta cor="dourado">
-              📦 Estoque baixo: {estoqueBaixo.map((p) => `${p.nome} (${p.estoque})`).join(", ")}
+            <Alerta cor="dourado" icone="caixa">
+              Estoque baixo: {estoqueBaixo.map((p) => `${p.nome} (${p.estoque})`).join(", ")}.{" "}
+              <Link href="/admin/estoque" className="font-semibold underline">Ajustar estoque</Link>
             </Alerta>
           )}
           {rascunhos.length > 0 && (
-            <Alerta cor="neutro">
-              📝 {rascunhos.length} produto(s) em rascunho, fora da loja: {rascunhos.map((p) => p.nome).join(", ")}.{" "}
+            <Alerta cor="neutro" icone="documento">
+              {rascunhos.length} produto(s) em rascunho, fora da loja: {rascunhos.map((p) => p.nome).join(", ")}.{" "}
               <Link href="/admin/produtos" className="font-semibold underline">Ver produtos</Link>
             </Alerta>
           )}
@@ -90,7 +92,7 @@ export default async function Dashboard() {
         </div>
         {pedidos.length === 0 ? (
           <p className="py-8 text-center text-texto-suave">
-            Nenhum pedido ainda. Assim que o Pix estiver ligado, eles aparecem aqui. 🎉
+            Nenhum pedido ainda. Assim que o Pix estiver ligado, eles aparecem aqui.
           </p>
         ) : (
           <ul className="divide-y divide-borda">
@@ -128,11 +130,16 @@ function CardNumero({ rotulo, valor, href, destaque }: { rotulo: string; valor: 
   );
 }
 
-function Alerta({ cor, children }: { cor: "perigo" | "dourado" | "neutro"; children: React.ReactNode }) {
+function Alerta({ cor, icone, children }: { cor: "perigo" | "dourado" | "neutro"; icone: NomeIcone; children: React.ReactNode }) {
   const classes = {
     perigo: "bg-perigo/10 text-perigo",
     dourado: "bg-dourado-claro text-marrom",
     neutro: "bg-creme-claro text-texto-suave border border-borda",
   };
-  return <p className={`rounded-xl px-4 py-3 text-sm ${classes[cor]}`}>{children}</p>;
+  return (
+    <p className={`flex items-start gap-2 rounded-xl px-4 py-3 text-sm ${classes[cor]}`}>
+      <Icone nome={icone} className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{children}</span>
+    </p>
+  );
 }

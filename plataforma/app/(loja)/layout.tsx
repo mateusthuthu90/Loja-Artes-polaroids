@@ -12,7 +12,7 @@ export default async function LayoutLoja({ children }: LayoutProps<"/">) {
       {!config.loja.aberta && (
         // Modo férias: o site continua no ar, só avisa (e o checkout bloqueia)
         <div className="bg-marrom px-4 py-2 text-center text-sm text-creme-claro">
-          {config.loja.mensagem_fechada || "Estamos de férias! Voltamos em breve 💛"}
+          {config.loja.mensagem_fechada || "Estamos de férias! Voltamos em breve."}
         </div>
       )}
       <Cabecalho categorias={categorias} />

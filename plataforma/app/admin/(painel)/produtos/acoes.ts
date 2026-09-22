@@ -3,6 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { exigirAdmin } from "@/lib/admin/sessao";
 import { registrarAcao } from "@/lib/admin/log";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { TAG_CATALOGO } from "@/lib/catalogo";
 import { gerarSlug, paraBanco, validarProduto, type ErrosProduto, type ProdutoForm } from "@/lib/produto-form";
 import type { StatusProduto } from "@/lib/types";
@@ -108,6 +109,54 @@ export async function excluirProduto(id: string): Promise<Resultado & { desativa
   await registrarAcao(user.id, "produto.excluir", "produto", id, { nome: produto?.nome });
   atualizarLoja();
   return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Estoque
+// ---------------------------------------------------------------------------
+export type MotivoEstoque = "reposicao" | "perda" | "correcao";
+
+/**
+ * Define o saldo de um produto. `null` = volta a ser sob demanda (sem controle).
+ * Toda mudança vira um movimento com motivo (prevencao-erros §5) e entra no log.
+ */
+export async function ajustarEstoque(
+  produtoId: string,
+  novoEstoque: number | null,
+  motivo: MotivoEstoque = "correcao",
+  observacao?: string,
+): Promise<Resultado> {
+  const { supabase, user } = await exigirAdmin();
+
+  if (novoEstoque !== null && (!Number.isInteger(novoEstoque) || novoEstoque < 0 || novoEstoque > 999999)) {
+    return { ok: false, erros: { geral: "Quantidade inválida" } };
+  }
+
+  const { data: antes } = await supabase.from("produtos").select("nome, estoque").eq("id", produtoId).maybeSingle();
+  if (!antes) return { ok: false, erros: { geral: "Produto não encontrado" } };
+
+  const { error } = await supabase.from("produtos").update({ estoque: novoEstoque }).eq("id", produtoId);
+  if (error) return { ok: false, erros: erroDoBanco(error) };
+
+  const anterior = antes.estoque as number | null;
+  const delta = novoEstoque !== null && anterior !== null ? novoEstoque - anterior : 0;
+  if (delta !== 0) {
+    // a tabela de movimentos é só leitura para o navegador: grava com a chave do servidor
+    const { error: eMov } = await createAdminClient()
+      .from("estoque_movimentos")
+      .insert({ produto_id: produtoId, delta, motivo, observacao: observacao || null, autor: user.id });
+    if (eMov) console.error("[estoque] falha ao registrar movimento:", eMov.message);
+  }
+
+  await registrarAcao(user.id, "estoque.ajustar", "produto", produtoId, {
+    nome: antes.nome,
+    de: anterior,
+    para: novoEstoque,
+    motivo,
+    observacao: observacao || null,
+  });
+  atualizarLoja();
+  return { ok: true, id: produtoId };
 }
 
 // ---------------------------------------------------------------------------

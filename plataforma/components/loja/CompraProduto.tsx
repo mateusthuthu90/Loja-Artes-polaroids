@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Icone } from "@/components/Icone";
 import { descontosPorQuantidade, esgotado, formatarBRL, fotosPorUnidade, precoUnitario } from "@/lib/preco";
 import type { OpcoesEscolhidas, Produto } from "@/lib/types";
 import { QUANTIDADE_MAXIMA, useCarrinho } from "./carrinho";
@@ -123,7 +124,7 @@ export function CompraProduto({ produto }: { produto: Produto }) {
 
       {produto.requer_fotos_cliente && (
         <div className="mb-5 flex gap-3 rounded-card border border-dourado-claro bg-dourado-claro/50 p-4 text-sm">
-          <span aria-hidden className="text-lg">📸</span>
+          <Icone nome="camera" className="mt-0.5 h-5 w-5 shrink-0 text-marrom" />
           <p>
             Você vai enviar{" "}
             <strong>
@@ -158,7 +159,7 @@ export function CompraProduto({ produto }: { produto: Produto }) {
             className="w-full max-w-sm rounded-grande bg-cartao p-6 text-center shadow-forte"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="mb-2 text-4xl" aria-hidden>🎉</p>
+            <Icone nome="sacola" className="mx-auto mb-2 h-10 w-10 text-terracota" />
             <h3 id="titulo-adicionado" className="text-xl font-semibold">
               Adicionado ao carrinho!
             </h3>

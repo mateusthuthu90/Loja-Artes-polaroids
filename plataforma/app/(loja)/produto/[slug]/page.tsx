@@ -5,6 +5,7 @@ import { GradeProdutos } from "@/components/loja/CardProduto";
 import { CompraProduto } from "@/components/loja/CompraProduto";
 import { Galeria } from "@/components/loja/Galeria";
 import { CabecalhoSecao } from "@/components/loja/ui";
+import { Icone } from "@/components/Icone";
 import { buscarProduto, categoriasComProdutos, lerConfig, listarProdutos } from "@/lib/catalogo";
 import { formatarBRL, precoMinimo, temPrecoVariavel } from "@/lib/preco";
 
@@ -78,13 +79,22 @@ export default async function PaginaProduto({ params }: PageProps<"/produto/[slu
             <CompraProduto produto={produto} />
 
             {/* Prazos (regra 6.1) e política de troca de personalizados (regra 4.4) visíveis ANTES da compra */}
-            <ul className="mt-6 space-y-2 border-t border-borda pt-5 text-sm text-texto-suave">
+            <ul className="mt-6 space-y-2.5 border-t border-borda pt-5 text-sm text-texto-suave">
               {prazo > 0 && (
-                <li>🕒 Produção em até <strong className="text-texto">{prazo} dias úteis</strong> + prazo de envio</li>
+                <li className="flex items-start gap-2">
+                  <Icone nome="relogio" className="mt-0.5 h-4 w-4 shrink-0 text-terracota" />
+                  <span>Produção em até <strong className="text-texto">{prazo} dias úteis</strong> + prazo de envio</span>
+                </li>
               )}
-              <li>🚚 Envio para todo o Brasil ou retirada combinada</li>
+              <li className="flex items-start gap-2">
+                <Icone nome="caminhao" className="mt-0.5 h-4 w-4 shrink-0 text-terracota" />
+                <span>Envio para todo o Brasil ou retirada combinada</span>
+              </li>
               {produto.requer_fotos_cliente && (
-                <li>💛 Produto personalizado: troca apenas em caso de defeito de produção</li>
+                <li className="flex items-start gap-2">
+                  <Icone nome="coracao" className="mt-0.5 h-4 w-4 shrink-0 text-terracota" />
+                  <span>Produto personalizado: troca apenas em caso de defeito de produção</span>
+                </li>
               )}
             </ul>
           </div>

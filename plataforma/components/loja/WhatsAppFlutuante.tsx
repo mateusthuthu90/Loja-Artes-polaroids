@@ -3,7 +3,7 @@ import { linkWhatsApp } from "@/lib/whatsapp";
 export function WhatsAppFlutuante({ numero }: { numero: string }) {
   return (
     <a
-      href={linkWhatsApp(numero, "Oi! Vim pelo site e tenho uma dúvida 🙂")}
+      href={linkWhatsApp(numero, "Oi! Vim pelo site e tenho uma dúvida.")}
       target="_blank"
       rel="noopener"
       aria-label="Tirar dúvidas no WhatsApp"

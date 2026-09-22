@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EstoqueRapido } from "@/components/admin/EstoqueRapido";
+import { Icone } from "@/components/Icone";
 import { exigirAdmin } from "@/lib/admin/sessao";
 import { formatarBRL, precoMinimo, temPrecoVariavel } from "@/lib/preco";
 import type { Produto, StatusProduto } from "@/lib/types";
@@ -79,12 +81,18 @@ export default async function PaginaProdutos({ searchParams }: PageProps<"/admin
                 <div className="flex flex-wrap items-center gap-2">
                   <Link href={`/admin/produtos/${p.id}`} className="font-semibold hover:text-marrom">{p.nome}</Link>
                   <span className={`rounded-full px-2 py-0.5 text-[0.7rem] font-bold ${ROTULO[p.status].cor}`}>{ROTULO[p.status].texto}</span>
-                  {p.destaque && <span className="text-xs" title="Destaque na home">⭐</span>}
+                  {p.destaque && (
+                    <span title="Destaque na home" className="text-dourado">
+                      <Icone nome="estrela" className="h-4 w-4" />
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-texto-suave">
-                  {nomes.get(p.categoria_id)} · {temPrecoVariavel(p) && "a partir de "}{formatarBRL(precoMinimo(p))} ·{" "}
-                  {p.estoque === null ? "sob demanda" : `estoque ${p.estoque}`}
+                  {nomes.get(p.categoria_id)} · {temPrecoVariavel(p) && "a partir de "}{formatarBRL(precoMinimo(p))}
                 </p>
+                <div className="mt-1">
+                  <EstoqueRapido produtoId={p.id} estoque={p.estoque} estoqueMinimo={p.estoque_minimo} />
+                </div>
                 {p.status === "rascunho" && (p.imagens.length === 0 || !p.descricao.trim()) && (
                   <p className="text-xs text-perigo">Falta {p.imagens.length === 0 ? "foto" : "descrição"} para publicar</p>
                 )}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { salvarCategoria, salvarProduto } from "@/app/admin/(painel)/produtos/acoes";
+import { Icone } from "@/components/Icone";
 import { CardProduto } from "@/components/loja/CardProduto";
 import { EditorFoto } from "./EditorFoto";
 import { LIMITES, gerarSlug, lerPreco, validarProduto, type ErrosProduto, type ProdutoForm } from "@/lib/produto-form";
@@ -66,7 +67,7 @@ export function FormProduto({
       if (!f.id && r.id) {
         router.replace(`/admin/produtos/${r.id}?salvo=1`);
       } else {
-        setMensagem("✓ Produto salvo!");
+        setMensagem("Produto salvo!");
         router.refresh();
       }
     });
@@ -213,7 +214,9 @@ export function FormProduto({
                   <Image src={url} alt="" fill sizes="160px" className="object-cover" />
                   {i === 0 && <span className="absolute left-1 top-1 rounded bg-marrom px-1.5 text-[0.65rem] font-bold text-creme-claro">CAPA</span>}
                   <div className="absolute inset-x-1 top-1 flex justify-end">
-                    <BotaoFoto onClick={() => set("imagens", f.imagens.filter((u) => u !== url))} rotulo="Remover foto">✕</BotaoFoto>
+                    <BotaoFoto onClick={() => set("imagens", f.imagens.filter((u) => u !== url))} rotulo="Remover foto">
+                      <Icone nome="fechar" className="h-3 w-3" />
+                    </BotaoFoto>
                   </div>
                   <div className="absolute inset-x-1 bottom-1 flex justify-between">
                     <span className="flex gap-1">
@@ -223,9 +226,10 @@ export function FormProduto({
                     <button
                       type="button"
                       onClick={() => ajustarFoto(i)}
-                      className="rounded-full bg-texto/70 px-2 py-1 text-[0.65rem] font-semibold text-white hover:bg-texto"
+                      className="flex items-center gap-1 rounded-full bg-texto/70 px-2 py-1 text-[0.65rem] font-semibold text-white hover:bg-texto"
                     >
-                      ✂ Ajustar
+                      <Icone nome="tesoura" className="h-3 w-3" />
+                      Ajustar
                     </button>
                   </div>
                 </li>
@@ -342,7 +346,7 @@ export function FormProduto({
       {/* Barra de salvar fixa */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-borda bg-cartao/95 px-4 py-3 backdrop-blur md:left-60">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <p className={`text-sm ${mensagem?.startsWith("✓") ? "text-sucesso" : "text-perigo"}`} role="status">{mensagem}</p>
+          <p className={`text-sm ${mensagem?.includes("salv") || mensagem?.includes("criado") ? "text-sucesso" : "text-perigo"}`} role="status">{mensagem}</p>
           <button type="button" onClick={salvar} disabled={salvando || enviandoFotos > 0} className="shrink-0 rounded-full bg-marrom px-7 py-3 font-semibold text-creme-claro hover:bg-texto disabled:opacity-50">
             {salvando ? "Salvando…" : enviandoFotos > 0 ? "Enviando fotos…" : "Salvar produto"}
           </button>
@@ -407,7 +411,7 @@ function EditorOpcoes({ grupos, onChange, precoBase, pedeFotos }: { grupos: Grup
                     {pedeFotos && (
                       <input className={inp()} inputMode="numeric" defaultValue={v.fotos ?? ""} placeholder="—" onChange={(e) => mudar({ fotos: numeroOpcional(e.target.value) })} />
                     )}
-                    <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: g.valores.filter((_, m) => m !== k) })} className="text-texto-fraco hover:text-perigo" aria-label="Remover opção">✕</button>
+                    <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: g.valores.filter((_, m) => m !== k) })} className="text-texto-fraco hover:text-perigo" aria-label="Remover opção"><Icone nome="fechar" className="h-3.5 w-3.5" /></button>
                   </div>
                   {porUnidade > 0 && (
                     <p className="mt-0.5 pl-1 text-xs text-texto-suave">

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { Icone, type NomeIcone } from "@/components/Icone";
 import type { ConfigLoja } from "@/lib/catalogo";
 import { calcularFrete, formatarBRL } from "@/lib/preco";
 import type { Produto } from "@/lib/types";
@@ -105,7 +106,7 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
                   i < indice ? "border-sucesso text-sucesso" : i === indice ? "border-marrom text-marrom" : "border-borda text-texto-fraco"
                 }`}
               >
-                {i < indice ? "✓ " : `${i + 1}. `}
+                {i < indice ? <Icone nome="confirmado" className="mr-1 inline h-3.5 w-3.5" /> : `${i + 1}. `}
                 {TITULOS[e]}
               </button>
             </li>
@@ -153,7 +154,8 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
               <OpcaoEntrega
                 ativa={estado.tipoEntrega === "envio"}
                 onClick={() => atualizar((s) => ({ ...s, tipoEntrega: "envio" }))}
-                titulo="🚚 Enviar para meu endereço"
+                icone="caminhao"
+                titulo="Enviar para meu endereço"
                 texto={
                   calcularFrete(subtotal, "envio", config.frete) === 0
                     ? "Frete grátis!"
@@ -164,7 +166,8 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
                 <OpcaoEntrega
                   ativa={estado.tipoEntrega === "retirada"}
                   onClick={() => atualizar((s) => ({ ...s, tipoEntrega: "retirada" }))}
-                  titulo="🏠 Retirar com a gente"
+                  icone="casa"
+                  titulo="Retirar com a gente"
                   texto={`Grátis${config.retirada.endereco ? ` · ${config.retirada.endereco}` : ""}`}
                 />
               )}
@@ -187,7 +190,10 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
         {etapa === "fotos" && (
           <div className="space-y-4">
             <div className="rounded-card bg-dourado-claro/60 p-4 text-sm">
-              <p className="font-semibold">📸 Hora de enviar suas fotos!</p>
+              <p className="flex items-center gap-2 font-semibold">
+                <Icone nome="camera" className="h-5 w-5 text-marrom" />
+                Hora de enviar suas fotos!
+              </p>
               <p className="mt-1 text-texto-suave">
                 Escolha as fotos de cada produto. Elas ficam guardadas com segurança e só são usadas para produzir o seu pedido.
               </p>
@@ -248,7 +254,7 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
                   const n = (estado.fotos[l.item.chave] ?? []).length;
                   return (
                     <p key={l.item.chave}>
-                      ✓ {l.produto.nome}: {n} {n === 1 ? "foto" : "fotos"}
+                      <Icone nome="confirmado" className="mr-1 inline h-3.5 w-3.5 text-sucesso" />{l.produto.nome}: {n} {n === 1 ? "foto" : "fotos"}
                     </p>
                   );
                 })}
@@ -387,16 +393,19 @@ function Cartao({ titulo, subtitulo, children }: { titulo: string; subtitulo?: s
   );
 }
 
-function OpcaoEntrega({ ativa, onClick, titulo, texto }: { ativa: boolean; onClick: () => void; titulo: string; texto: string }) {
+function OpcaoEntrega({ ativa, onClick, icone, titulo, texto }: { ativa: boolean; onClick: () => void; icone: NomeIcone; titulo: string; texto: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={ativa}
-      className={`rounded-card border-[1.5px] p-4 text-left transition ${ativa ? "border-terracota bg-terracota-claro" : "border-borda hover:border-terracota"}`}
+      className={`flex items-start gap-3 rounded-card border-[1.5px] p-4 text-left transition ${ativa ? "border-terracota bg-terracota-claro" : "border-borda hover:border-terracota"}`}
     >
-      <span className="block font-semibold">{titulo}</span>
-      <span className="text-sm text-texto-suave">{texto}</span>
+      <Icone nome={icone} className="mt-0.5 h-5 w-5 shrink-0 text-terracota" />
+      <span>
+        <span className="block font-semibold">{titulo}</span>
+        <span className="text-sm text-texto-suave">{texto}</span>
+      </span>
     </button>
   );
 }

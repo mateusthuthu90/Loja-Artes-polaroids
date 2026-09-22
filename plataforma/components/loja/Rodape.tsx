@@ -46,7 +46,7 @@ export function Rodape({ contato }: { contato: ConfigLoja["contato"] }) {
         </div>
       </div>
       <p className="border-t border-borda py-5 text-center text-xs text-texto-fraco">
-        © {new Date().getFullYear()} Artes Polaroids. Feito com ❤️ para guardar memórias.
+        © {new Date().getFullYear()} Artes Polaroids. Feito à mão, com carinho, para guardar memórias.
       </p>
     </footer>
   );

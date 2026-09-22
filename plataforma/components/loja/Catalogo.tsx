@@ -46,7 +46,7 @@ export function Catalogo({
         <GradeProdutos produtos={produtos} nomesCategorias={ativa ? undefined : nomes} />
       ) : (
         <p className="py-16 text-center text-texto-suave">
-          Nenhum produto por aqui ainda. Dá uma olhada nas outras categorias! 💛
+          Nenhum produto por aqui ainda. Dá uma olhada nas outras categorias.
         </p>
       )}
     </section>

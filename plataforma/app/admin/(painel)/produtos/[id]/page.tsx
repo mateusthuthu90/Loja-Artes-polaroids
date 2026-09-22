@@ -27,7 +27,7 @@ export default async function EditarProduto({ params, searchParams }: PageProps<
       categorias={(categorias ?? []) as Categoria[]}
       statusSalvo={p.status}
       precoSalvo={Number(p.preco)}
-      mensagemInicial={salvo ? "✓ Produto criado!" : null}
+      mensagemInicial={salvo ? "Produto criado!" : null}
     />
   );
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Icone } from "@/components/Icone";
 import type { ConfigLoja } from "@/lib/catalogo";
 import { formatarBRL } from "@/lib/preco";
 import type { Produto } from "@/lib/types";
@@ -26,7 +27,7 @@ export function VisaoCarrinho({
   if (linhas.length === 0) {
     return (
       <div className="py-20 text-center">
-        <p className="mb-2 text-5xl" aria-hidden>🛍️</p>
+        <Icone nome="sacola" className="mx-auto mb-3 h-12 w-12 text-terracota" />
         <h2 className="text-2xl font-semibold">Seu carrinho está vazio</h2>
         <p className="mb-6 mt-2 text-texto-suave">Que tal escolher uma lembrança especial?</p>
         <Link href="/produtos" className={botaoPrimario}>Ver produtos</Link>
@@ -49,14 +50,19 @@ export function VisaoCarrinho({
                 <Link href={`/produto/${produto.slug}`} className="font-display text-lg font-semibold leading-tight hover:text-marrom">
                   {produto.nome}
                 </Link>
-                <button type="button" onClick={() => remover(item.chave)} className="text-sm text-texto-fraco hover:text-perigo" aria-label={`Remover ${produto.nome}`}>
-                  ✕
+                <button type="button" onClick={() => remover(item.chave)} className="text-texto-fraco hover:text-perigo" aria-label={`Remover ${produto.nome}`}>
+                  <Icone nome="fechar" className="h-4 w-4" />
                 </button>
               </div>
               {Object.entries(item.opcoes).map(([k, v]) => (
                 <p key={k} className="text-sm text-texto-suave">{k}: {v}</p>
               ))}
-              {fotosMin > 0 && <p className="text-xs text-terracota">📸 {fotosMin} {fotosMin === 1 ? "foto" : "fotos"} para enviar</p>}
+              {fotosMin > 0 && (
+                <p className="flex items-center gap-1 text-xs text-terracota">
+                  <Icone nome="camera" className="h-3.5 w-3.5" />
+                  {fotosMin} {fotosMin === 1 ? "foto" : "fotos"} para enviar
+                </p>
+              )}
               <div className="mt-auto flex items-end justify-between pt-2">
                 {!temGrupoQuantidade(produto) ? (
                   <div className="flex items-center rounded-full border border-borda">
@@ -95,8 +101,8 @@ export function VisaoCarrinho({
         {faltaFreteGratis !== null && (
           <p className="mt-4 rounded-xl bg-sucesso-claro px-3 py-2 text-sm text-sucesso">
             {faltaFreteGratis > 0
-              ? `Faltam ${formatarBRL(faltaFreteGratis)} para o frete grátis 🚚`
-              : "Seu pedido tem frete grátis! 🎉"}
+              ? `Faltam ${formatarBRL(faltaFreteGratis)} para o frete grátis`
+              : "Seu pedido tem frete grátis!"}
           </p>
         )}
         <div className="mt-5 flex justify-between border-t border-borda pt-4">

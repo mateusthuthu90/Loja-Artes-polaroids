@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Icone } from "@/components/Icone";
 import type { Categoria } from "@/lib/types";
 
 // No celular não existe "hover": as categorias aparecem abertas dentro do menu.
@@ -30,9 +31,9 @@ export function MenuMobile({ categorias }: { categorias: Categoria[] }) {
         onClick={alternar}
         aria-expanded={aberto}
         aria-label={aberto ? "Fechar menu" : "Abrir menu"}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-borda bg-cartao text-xl"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-borda bg-cartao"
       >
-        {aberto ? "✕" : "☰"}
+        <Icone nome={aberto ? "fechar" : "menu"} className="h-5 w-5" />
       </button>
 
       {aberto && (

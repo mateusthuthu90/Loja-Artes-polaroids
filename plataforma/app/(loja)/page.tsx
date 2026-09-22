@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { GradeProdutos } from "@/components/loja/CardProduto";
 import { CabecalhoSecao, Selo, botaoContorno, botaoPrimario } from "@/components/loja/ui";
+import { Icone, type NomeIcone } from "@/components/Icone";
 import { categoriasComProdutos, lerConfig, listarProdutos } from "@/lib/catalogo";
 
 export const revalidate = 60;
@@ -82,7 +83,7 @@ export default async function Home() {
           {destaques.length > 0 ? (
             <GradeProdutos produtos={destaques} nomesCategorias={nomes} />
           ) : (
-            <p className="text-center text-texto-suave">Nossa vitrine está sendo arrumada. Volte daqui a pouquinho! 💛</p>
+            <p className="text-center text-texto-suave">Nossa vitrine está sendo arrumada. Volte daqui a pouquinho.</p>
           )}
           <div className="mt-10 text-center">
             <Link href="/produtos" className={botaoContorno}>
@@ -143,32 +144,11 @@ export default async function Home() {
   );
 }
 
-const ICONES = {
-  camera: (
-    <>
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-      <circle cx="12" cy="13" r="4" />
-    </>
-  ),
-  caminhao: (
-    <>
-      <rect x="1" y="6" width="15" height="12" />
-      <path d="M16 10h4l3 3v5h-7z" />
-      <circle cx="6" cy="20" r="2" />
-      <circle cx="18" cy="20" r="2" />
-    </>
-  ),
-  coracao: <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />,
-  escudo: <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z" />,
-};
-
-function Beneficio({ icone, titulo, texto }: { icone: keyof typeof ICONES; titulo: string; texto: string }) {
+function Beneficio({ icone, titulo, texto }: { icone: NomeIcone; titulo: string; texto: string }) {
   return (
     <div className="text-center">
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-terracota-claro text-terracota">
-        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          {ICONES[icone]}
-        </svg>
+        <Icone nome={icone} className="h-6 w-6" />
       </div>
       <h3 className="mb-1 text-base font-semibold">{titulo}</h3>
       <p className="text-sm text-texto-suave">{texto}</p>
