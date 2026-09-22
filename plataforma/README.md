@@ -3,8 +3,10 @@
 Nova versão da loja, conforme `../Progama e-commerce/Arquitetura do Projeto/arquitetura-artes-polaroids.md`.
 Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 
-> O site estático atual (raiz do repositório) **continua no ar** até a Fase 1 ficar pronta.
-> Esta pasta não interfere nele.
+**No ar:** https://artes-polaroids.mateusthuthu90.workers.dev (Cloudflare Workers)
+
+> O site estático antigo (raiz do repositório) continua publicado em
+> `loja-artes-polaroids.pages.dev` até trocarmos o encaminhamento.
 
 ## Andamento
 
@@ -19,6 +21,38 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 | Fase 1 · Prompt 9 | Admin: login (Supabase Auth + tabela admins), proteção de /admin, menu, dashboard com números reais, listas de pedidos/produtos/configurações (leitura) | ✅ |
 | Fase 1 · Prompt 10 | Admin de produtos: criar/editar (fotos com compressão, variações, fotos do cliente, estoque), publicar/despublicar, duplicar, excluir (vira inativo se tiver pedidos), categorias, pré-visualização e log de ações | ✅ |
 | Fase 1 · Prompts 7, 8, 11 | Webhook, acompanhamento, gestão de pedidos | — |
+| Extra | Descontos: cupons e promoções (painel + loja) | ✅ |
+| Extra | Publicação na Cloudflare Workers (adaptador OpenNext) | ✅ |
+
+## Continuar em outra máquina
+
+1. `git clone https://github.com/mateusthuthu90/Loja-Artes-polaroids.git`
+2. `cd Loja-Artes-polaroids/plataforma` e `npm install`
+3. Copie `.env.example` para `.env.local` e preencha as 3 chaves do Supabase
+   (Project Settings → API). Sem elas a loja abre vazia.
+4. `npm run dev` → http://localhost:3000
+
+Para publicar a partir dessa máquina, também é preciso `npx wrangler login`
+(conta Cloudflare) — ver a seção abaixo.
+
+## Publicar (Cloudflare Workers)
+
+A loja roda em Workers pelo adaptador [OpenNext](https://opennext.js.org/cloudflare).
+
+```bash
+npx wrangler login          # uma vez por máquina
+npm run cf:build            # gera a versão Cloudflare em .open-next/
+npx wrangler deploy         # publica
+```
+
+- Configuração do Worker: `wrangler.jsonc` (nome `artes-polaroids`, binding de
+  imagens e dos arquivos estáticos) e `open-next.config.ts`.
+- `npm run cf:preview` roda a versão Cloudflare localmente. Para isso, crie um
+  arquivo `.dev.vars` com a linha `SUPABASE_SERVICE_ROLE_KEY=...` (fica fora do git).
+- A chave secreta em produção **não** vai no código: já está guardada na
+  Cloudflare. Para trocá-la: `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`.
+- `.env.production` guarda só o endereço público do site (sem segredo). Quando o
+  domínio próprio entrar, troque essa linha e publique de novo.
 
 ## Configurar o Supabase (uma vez, ~15 min)
 
