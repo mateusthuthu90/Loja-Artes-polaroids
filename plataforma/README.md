@@ -17,7 +17,8 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 | Fase 1 · Prompt 5 | Checkout parte 1: dados (máscara), entrega (CEP automático via ViaCEP), upload de fotos por item (compressão, URLs assinadas, bucket privado) | ✅ |
 | Fase 1 · Prompt 6 | Checkout parte 2: criar pedido + Pix (Mercado Pago) | ⏳ próximo |
 | Fase 1 · Prompt 9 | Admin: login (Supabase Auth + tabela admins), proteção de /admin, menu, dashboard com números reais, listas de pedidos/produtos/configurações (leitura) | ✅ |
-| Fase 1 · Prompts 7, 8, 10, 11 | Webhook, acompanhamento, CRUD de produtos, gestão de pedidos | — |
+| Fase 1 · Prompt 10 | Admin de produtos: criar/editar (fotos com compressão, variações, fotos do cliente, estoque), publicar/despublicar, duplicar, excluir (vira inativo se tiver pedidos), categorias, pré-visualização e log de ações | ✅ |
+| Fase 1 · Prompts 7, 8, 11 | Webhook, acompanhamento, gestão de pedidos | — |
 
 ## Configurar o Supabase (uma vez, ~15 min)
 

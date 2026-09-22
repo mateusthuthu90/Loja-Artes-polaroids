@@ -19,7 +19,7 @@ export interface FotoProcessada {
   miniatura: string | null;
 }
 
-export async function processarFoto(arquivo: File): Promise<FotoProcessada> {
+export async function processarFoto(arquivo: File, ladoMaximo = LADO_MAXIMO): Promise<FotoProcessada> {
   let bitmap: ImageBitmap;
   try {
     // "from-image" respeita a rotação EXIF (foto de celular deitada)
@@ -37,7 +37,7 @@ export async function processarFoto(arquivo: File): Promise<FotoProcessada> {
 
   try {
     const { width, height } = bitmap;
-    const escala = Math.min(1, LADO_MAXIMO / Math.max(width, height));
+    const escala = Math.min(1, ladoMaximo / Math.max(width, height));
     const w = Math.round(width * escala);
     const h = Math.round(height * escala);
 
