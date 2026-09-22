@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { esgotado, formatarBRL, fotosPorUnidade, precoUnitario } from "@/lib/preco";
+import { descontosPorQuantidade, esgotado, formatarBRL, fotosPorUnidade, precoUnitario } from "@/lib/preco";
 import type { OpcoesEscolhidas, Produto } from "@/lib/types";
 import { QUANTIDADE_MAXIMA, useCarrinho } from "./carrinho";
 import { botaoContorno, botaoPrimario } from "./ui";
@@ -24,6 +24,8 @@ export function CompraProduto({ produto }: { produto: Produto }) {
   const maximo = Math.min(QUANTIDADE_MAXIMA, produto.estoque ?? QUANTIDADE_MAXIMA);
   const unitario = precoUnitario(produto, opcoes);
   const fotos = fotosPorUnidade(produto, opcoes);
+  const descontos = descontosPorQuantidade(produto, opcoes);
+  const descontoEscolhido = descontos?.opcoes.find((o) => o.label === opcoes[descontos.grupo]);
 
   function comprar() {
     adicionar(produto.id, opcoes, quantidade);
@@ -32,7 +34,7 @@ export function CompraProduto({ produto }: { produto: Produto }) {
 
   return (
     <div>
-      <p className="mb-5 font-display text-3xl font-bold text-marrom">
+      <p className={`font-display text-3xl font-bold text-marrom ${descontoEscolhido ? "mb-1" : "mb-5"}`}>
         {formatarBRL(unitario * quantidade)}
         {quantidade > 1 && (
           <span className="ml-2 font-sans text-sm font-medium text-texto-suave">
@@ -40,6 +42,16 @@ export function CompraProduto({ produto }: { produto: Produto }) {
           </span>
         )}
       </p>
+      {descontoEscolhido && (
+        <p className="mb-5 text-sm text-texto-suave">
+          {formatarBRL(descontoEscolhido.porUnidade)} por unidade
+          {descontoEscolhido.economia > 0 && (
+            <span className="ml-2 rounded-full bg-sucesso-claro px-2 py-0.5 font-semibold text-sucesso">
+              Economize {formatarBRL(descontoEscolhido.economia)} ({descontoEscolhido.percentual}%)
+            </span>
+          )}
+        </p>
+      )}
 
       {produto.opcoes.map((grupo) => (
         <fieldset key={grupo.nome} className="mb-5">
@@ -47,19 +59,32 @@ export function CompraProduto({ produto }: { produto: Produto }) {
           <div className="flex flex-wrap gap-2">
             {grupo.valores.map((v) => {
               const selecionado = opcoes[grupo.nome] === v.label;
+              const d = descontos?.grupo === grupo.nome ? descontos.opcoes.find((o) => o.label === v.label) : undefined;
               return (
                 <button
                   key={v.label}
                   type="button"
                   aria-pressed={selecionado}
                   onClick={() => setOpcoes((o) => ({ ...o, [grupo.nome]: v.label }))}
-                  className={`rounded-full border-[1.5px] px-4 py-2 text-sm font-semibold transition ${
+                  className={`relative border-[1.5px] font-semibold transition ${
+                    d ? "rounded-2xl px-4 py-2 text-left" : "rounded-full px-4 py-2"
+                  } text-sm ${
                     selecionado
                       ? "border-terracota bg-terracota-claro text-marrom"
                       : "border-borda bg-cartao hover:border-terracota"
                   }`}
                 >
                   {v.label}
+                  {d && (
+                    <span className="block text-xs font-medium text-texto-suave">
+                      {formatarBRL(d.preco)} · {formatarBRL(d.porUnidade)}/un
+                    </span>
+                  )}
+                  {d && d.percentual > 0 && (
+                    <span className="absolute -right-2 -top-2 rounded-full bg-sucesso px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
+                      -{d.percentual}%
+                    </span>
+                  )}
                 </button>
               );
             })}

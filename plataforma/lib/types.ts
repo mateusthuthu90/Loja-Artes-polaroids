@@ -13,9 +13,12 @@ export type StatusPedido =
 
 export interface ValorOpcao {
   label: string;
+  /** Diferença em relação ao preço base. Negativo = mais barato que o base. */
   acrescimo: number;
   /** Fotos que o cliente envia por unidade quando este valor é escolhido. */
   fotos?: number;
+  /** Unidades que esta opção representa (kit de 50 = 50). Usado para mostrar preço por unidade e desconto. */
+  unidades?: number;
 }
 
 export interface GrupoOpcao {

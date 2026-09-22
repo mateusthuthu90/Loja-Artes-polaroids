@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { esgotado, formatarBRL, precoMinimo, temPrecoVariavel } from "@/lib/preco";
+import { descontosPorQuantidade, esgotado, formatarBRL, precoMinimo, temPrecoVariavel } from "@/lib/preco";
 import type { Produto } from "@/lib/types";
 
 export function CardProduto({ produto, categoria }: { produto: Produto; categoria?: string }) {
   const [foto1, foto2] = produto.imagens;
   const semEstoque = esgotado(produto);
+  const padrao = Object.fromEntries(produto.opcoes.map((g) => [g.nome, g.valores[0]?.label ?? ""]));
+  const maiorDesconto = Math.max(0, ...(descontosPorQuantidade(produto, padrao)?.opcoes.map((o) => o.percentual) ?? []));
 
   return (
     <Link
@@ -58,6 +60,11 @@ export function CardProduto({ produto, categoria }: { produto: Produto; categori
             <span className="mr-1 font-sans text-xs font-medium text-texto-suave">A partir de</span>
           )}
           {formatarBRL(precoMinimo(produto))}
+          {maiorDesconto > 0 && (
+            <span className="ml-2 whitespace-nowrap rounded-full bg-sucesso-claro px-2 py-0.5 align-middle font-sans text-[0.68rem] font-bold text-sucesso">
+              até -{maiorDesconto}%
+            </span>
+          )}
         </p>
         <span className="mt-3 rounded-full bg-marrom py-2 text-center text-sm font-semibold text-creme-claro transition group-hover:bg-texto">
           {semEstoque ? "Ver produto" : "Comprar"}

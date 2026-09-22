@@ -60,6 +60,51 @@ export function temPrecoVariavel(produto: Produto): boolean {
   return produto.opcoes.some((g) => new Set(g.valores.map((v) => v.acrescimo)).size > 1);
 }
 
+export interface DescontoOpcao {
+  label: string;
+  preco: number;
+  unidades: number;
+  porUnidade: number;
+  /** % mais barato por unidade que a opção de maior preço unitário (0 = sem desconto) */
+  percentual: number;
+  /** quanto economiza em relação a comprar no preço unitário de referência */
+  economia: number;
+}
+
+/**
+ * Desconto por quantidade: para o grupo cujas opções informam "unidades"
+ * (ex.: 10/20/50/100 polaroids), calcula preço por unidade e economia de cada opção,
+ * mantendo as outras escolhas do cliente como estão.
+ */
+export function descontosPorQuantidade(
+  produto: Produto,
+  escolhidas: OpcoesEscolhidas,
+): { grupo: string; opcoes: DescontoOpcao[] } | null {
+  const grupo = produto.opcoes.find((g) => g.valores.some((v) => (v.unidades ?? 0) > 0));
+  if (!grupo) return null;
+
+  const base = grupo.valores
+    .filter((v) => (v.unidades ?? 0) > 0)
+    .map((v) => {
+      const preco = precoUnitario(produto, { ...escolhidas, [grupo.nome]: v.label });
+      return { label: v.label, preco, unidades: v.unidades!, porUnidade: preco / v.unidades! };
+    });
+  const referencia = Math.max(...base.map((o) => o.porUnidade));
+
+  return {
+    grupo: grupo.nome,
+    opcoes: base.map((o) => {
+      const economia = arredondar(referencia * o.unidades - o.preco);
+      return {
+        ...o,
+        porUnidade: arredondar(o.porUnidade),
+        economia: economia >= 0.01 ? economia : 0,
+        percentual: economia >= 0.01 ? Math.round((1 - o.porUnidade / referencia) * 100) : 0,
+      };
+    }),
+  };
+}
+
 /** Frete do MVP: valor fixo, grátis acima de X. Retirada é sempre grátis. */
 export function calcularFrete(
   subtotal: number,

@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { salvarCategoria, salvarProduto } from "@/app/admin/(painel)/produtos/acoes";
 import { CardProduto } from "@/components/loja/CardProduto";
-import { processarFoto } from "@/lib/imagem";
+import { EditorFoto } from "./EditorFoto";
 import { LIMITES, gerarSlug, lerPreco, validarProduto, type ErrosProduto, type ProdutoForm } from "@/lib/produto-form";
 import { createClient } from "@/lib/supabase/client";
 import type { Categoria, GrupoOpcao, Produto, StatusProduto } from "@/lib/types";
-
-const LADO_FOTO_PRODUTO = 1600;
 
 export function FormProduto({
   inicial,
@@ -34,6 +32,7 @@ export function FormProduto({
   const [errosServidor, setErrosServidor] = useState<ErrosProduto>({});
   const [mensagem, setMensagem] = useState<string | null>(mensagemInicial);
   const [enviandoFotos, setEnviandoFotos] = useState(0);
+  const [fila, setFila] = useState<{ blob: Blob; nome: string; indice: number | null }[]>([]);
   const [salvando, iniciar] = useTransition();
 
   const set = <K extends keyof ProdutoForm>(campo: K, valor: ProdutoForm[K]) => {
@@ -73,28 +72,46 @@ export function FormProduto({
     });
   }
 
-  async function enviarFotos(lista: FileList) {
+  /** Fila de fotos esperando ajuste: cada uma abre o editor de enquadramento. */
+  function enfileirarFotos(lista: FileList) {
     setMensagem(null);
-    const vagas = LIMITES.imagens - f.imagens.length;
+    const vagas = LIMITES.imagens - f.imagens.length - fila.length;
     const arquivos = Array.from(lista).slice(0, Math.max(0, vagas));
     if (lista.length > vagas) setMensagem(`Máximo de ${LIMITES.imagens} fotos por produto.`);
-    const storage = createClient().storage.from("produtos");
-    setEnviandoFotos((n) => n + arquivos.length);
-    for (const arquivo of arquivos) {
-      try {
-        const foto = await processarFoto(arquivo, LADO_FOTO_PRODUTO);
-        if (foto.largura === null) throw new Error("Formato não suportado. Use JPG, PNG ou WebP.");
-        if (Math.min(foto.largura, foto.altura ?? 0) < 600) setMensagem("⚠ Uma das fotos é pequena (menos de 600px) e pode ficar borrada na loja.");
-        const caminho = `${crypto.randomUUID()}.${foto.extensao}`;
-        const { error } = await storage.upload(caminho, foto.arquivo, { contentType: foto.tipo, cacheControl: "31536000" });
-        if (error) throw new Error("Falha no envio: " + error.message);
-        const url = storage.getPublicUrl(caminho).data.publicUrl;
-        setF((a) => ({ ...a, imagens: [...a.imagens, url] }));
-      } catch (e) {
-        setMensagem(e instanceof Error ? e.message : "Falha ao enviar foto");
-      } finally {
-        setEnviandoFotos((n) => n - 1);
-      }
+    setFila((q) => [...q, ...arquivos.map((a) => ({ blob: a, nome: a.name, indice: null }))]);
+  }
+
+  /** Reabre o editor para uma foto já enviada (troca no mesmo lugar). */
+  async function ajustarFoto(indice: number) {
+    setMensagem(null);
+    try {
+      const resposta = await fetch(f.imagens[indice], { cache: "no-store" });
+      if (!resposta.ok) throw new Error();
+      const blob = await resposta.blob();
+      setFila((q) => [...q, { blob, nome: `Foto ${indice + 1}`, indice }]);
+    } catch {
+      setMensagem("Não foi possível abrir esta foto para ajuste. Envie a foto de novo.");
+    }
+  }
+
+  async function enviarAjustada(blob: Blob, indice: number | null) {
+    setFila((q) => q.slice(1));
+    setEnviandoFotos((n) => n + 1);
+    try {
+      const storage = createClient().storage.from("produtos");
+      const caminho = `${crypto.randomUUID()}.jpg`;
+      const { error } = await storage.upload(caminho, blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+      if (error) throw new Error("Falha no envio: " + error.message);
+      const url = storage.getPublicUrl(caminho).data.publicUrl;
+      setErrosServidor({});
+      setF((a) => ({
+        ...a,
+        imagens: indice === null ? [...a.imagens, url] : a.imagens.map((u, i) => (i === indice ? url : u)),
+      }));
+    } catch (e) {
+      setMensagem(e instanceof Error ? e.message : "Falha ao enviar foto");
+    } finally {
+      setEnviandoFotos((n) => n - 1);
     }
   }
 
@@ -195,12 +212,21 @@ export function FormProduto({
                 <li key={url} className="relative aspect-square overflow-hidden rounded-xl bg-terracota-claro">
                   <Image src={url} alt="" fill sizes="160px" className="object-cover" />
                   {i === 0 && <span className="absolute left-1 top-1 rounded bg-marrom px-1.5 text-[0.65rem] font-bold text-creme-claro">CAPA</span>}
+                  <div className="absolute inset-x-1 top-1 flex justify-end">
+                    <BotaoFoto onClick={() => set("imagens", f.imagens.filter((u) => u !== url))} rotulo="Remover foto">✕</BotaoFoto>
+                  </div>
                   <div className="absolute inset-x-1 bottom-1 flex justify-between">
                     <span className="flex gap-1">
                       {i > 0 && <BotaoFoto onClick={() => moverFoto(i, -1)} rotulo="Mover para a esquerda">←</BotaoFoto>}
                       {i < f.imagens.length - 1 && <BotaoFoto onClick={() => moverFoto(i, 1)} rotulo="Mover para a direita">→</BotaoFoto>}
                     </span>
-                    <BotaoFoto onClick={() => set("imagens", f.imagens.filter((u) => u !== url))} rotulo="Remover foto">✕</BotaoFoto>
+                    <button
+                      type="button"
+                      onClick={() => ajustarFoto(i)}
+                      className="rounded-full bg-texto/70 px-2 py-1 text-[0.65rem] font-semibold text-white hover:bg-texto"
+                    >
+                      ✂ Ajustar
+                    </button>
                   </div>
                 </li>
               ))}
@@ -212,14 +238,14 @@ export function FormProduto({
                   <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-borda text-center text-xs text-texto-suave hover:border-terracota">
                     <span className="text-2xl">＋</span>
                     Adicionar
-                    <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(e) => { if (e.target.files) enviarFotos(e.target.files); e.target.value = ""; }} />
+                    <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(e) => { if (e.target.files) enfileirarFotos(e.target.files); e.target.value = ""; }} />
                   </label>
                 </li>
               )}
             </ul>
           </Secao>
 
-          <Secao titulo="Preço e variações" subtitulo="O preço base vale para a primeira opção. Cada opção pode somar um acréscimo.">
+          <Secao titulo="Preço e variações" subtitulo="O preço base é o da opção mais simples. Em cada variação você digita o preço final de cada opção. Pode ser menor (desconto) ou maior.">
             <Campo rotulo="Preço base (R$)" erro={erros.preco}>
               <input className={`${inp(erros.preco)} max-w-40`} inputMode="decimal" value={f.preco} onChange={(e) => set("preco", e.target.value)} placeholder="34,90" />
             </Campo>
@@ -303,6 +329,16 @@ export function FormProduto({
         </div>
       </div>
 
+      {fila[0] && (
+        <EditorFoto
+          key={fila.length + (fila[0].indice ?? -1) + fila[0].nome}
+          fonte={fila[0].blob}
+          titulo={fila[0].nome}
+          onConcluir={(blob) => enviarAjustada(blob, fila[0].indice)}
+          onCancelar={() => setFila((q) => q.slice(1))}
+        />
+      )}
+
       {/* Barra de salvar fixa */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-borda bg-cartao/95 px-4 py-3 backdrop-blur md:left-60">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
@@ -318,59 +354,77 @@ export function FormProduto({
 
 // ---------------------------------------------------------------------------
 // Editor de variações
+// Cada opção tem PREÇO FINAL (guardado como diferença para o preço base, que pode
+// ser negativa = desconto) e, opcionalmente, UNIDADES — com isso a loja mostra
+// preço por unidade e "economize X%" nas opções maiores.
 // ---------------------------------------------------------------------------
 function EditorOpcoes({ grupos, onChange, precoBase, pedeFotos }: { grupos: GrupoOpcao[]; onChange: (g: GrupoOpcao[]) => void; precoBase: number; pedeFotos: boolean }) {
   const atualizarGrupo = (i: number, g: GrupoOpcao) => onChange(grupos.map((x, j) => (j === i ? g : x)));
+  const colunas = pedeFotos ? "grid-cols-[1fr_96px_72px_64px_24px]" : "grid-cols-[1fr_96px_72px_24px]";
+  const base = precoBase > 0 ? precoBase : 0;
 
   return (
     <div className="space-y-3">
-      {grupos.map((g, i) => (
-        <div key={i} className="rounded-card border border-borda bg-creme-claro p-3">
-          <div className="mb-2 flex gap-2">
-            <input className={`${inp()} font-semibold`} value={g.nome} onChange={(e) => atualizarGrupo(i, { ...g, nome: e.target.value })} placeholder="Nome da variação (ex.: Tamanho)" />
-            <button type="button" onClick={() => confirm(`Remover a variação "${g.nome || "sem nome"}"?`) && onChange(grupos.filter((_, j) => j !== i))} className="shrink-0 rounded-xl px-3 text-sm text-perigo hover:bg-perigo/10">Remover</button>
-          </div>
-          <div className="mb-1 grid grid-cols-[1fr_90px_70px_28px] gap-2 px-1 text-[0.7rem] font-bold uppercase text-texto-suave">
-            <span>Opção</span><span>+ R$</span><span>{pedeFotos ? "Fotos" : ""}</span><span />
-          </div>
-          {g.valores.map((v, k) => (
-            <div key={`${grupos.length}-${i}-${g.valores.length}-${k}`} className="mb-1.5 grid grid-cols-[1fr_90px_70px_28px] items-center gap-2">
-              <input className={inp()} value={v.label} onChange={(e) => atualizarGrupo(i, { ...g, valores: g.valores.map((x, m) => (m === k ? { ...x, label: e.target.value } : x)) })} placeholder="Ex.: 20x30" />
-              <input
-                className={inp()}
-                inputMode="decimal"
-                defaultValue={v.acrescimo ? v.acrescimo.toFixed(2).replace(".", ",") : "0"}
-                onChange={(e) => {
-                  const n = lerPreco(e.target.value || "0");
-                  atualizarGrupo(i, { ...g, valores: g.valores.map((x, m) => (m === k ? { ...x, acrescimo: Number.isNaN(n) ? -1 : n } : x)) });
-                }}
-              />
-              {pedeFotos ? (
-                <input
-                  className={inp()}
-                  inputMode="numeric"
-                  defaultValue={v.fotos ?? ""}
-                  placeholder="—"
-                  title="Fotos que o cliente envia com esta opção (vazio = usa o padrão)"
-                  onChange={(e) => {
-                    const t = e.target.value.trim();
-                    atualizarGrupo(i, { ...g, valores: g.valores.map((x, m) => (m === k ? { ...x, fotos: t ? (/^\d+$/.test(t) ? Number(t) : -1) : undefined } : x)) });
-                  }}
-                />
-              ) : <span />}
-              <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: g.valores.filter((_, m) => m !== k) })} className="text-texto-fraco hover:text-perigo" aria-label="Remover opção">✕</button>
+      {grupos.map((g, i) => {
+        const comUnidades = g.valores.filter((v) => (v.unidades ?? 0) > 0 && base + v.acrescimo > 0);
+        const refUnidade = comUnidades.length ? Math.max(...comUnidades.map((v) => (base + v.acrescimo) / v.unidades!)) : 0;
+        return (
+          <div key={i} className="rounded-card border border-borda bg-creme-claro p-3">
+            <div className="mb-2 flex gap-2">
+              <input className={`${inp()} font-semibold`} value={g.nome} onChange={(e) => atualizarGrupo(i, { ...g, nome: e.target.value })} placeholder="Nome da variação (ex.: Quantidade)" />
+              <button type="button" onClick={() => confirm(`Remover a variação "${g.nome || "sem nome"}"?`) && onChange(grupos.filter((_, j) => j !== i))} className="shrink-0 rounded-xl px-3 text-sm text-perigo hover:bg-perigo/10">Remover</button>
             </div>
-          ))}
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: [...g.valores, { label: "", acrescimo: 0 }] })} className="text-sm font-semibold text-terracota hover:underline">+ Adicionar opção</button>
-            {precoBase > 0 && g.valores.length > 0 && (
-              <span className="text-xs text-texto-suave">
-                Na loja: {g.valores.filter((v) => v.label).map((v) => `${v.label} = R$ ${(precoBase + Math.max(0, v.acrescimo)).toFixed(2).replace(".", ",")}`).join(" · ")}
-              </span>
-            )}
+            <div className={`mb-1 grid ${colunas} gap-2 px-1 text-[0.7rem] font-bold uppercase text-texto-suave`}>
+              <span>Opção</span>
+              <span title="Preço final desta opção">Preço R$</span>
+              <span title="Quantas unidades esta opção tem (para calcular o desconto). Opcional.">Unid.</span>
+              {pedeFotos && <span title="Fotos que o cliente envia (vazio = padrão do produto)">Fotos</span>}
+              <span />
+            </div>
+            {g.valores.map((v, k) => {
+              const final = base + v.acrescimo;
+              const porUnidade = v.unidades && final > 0 ? final / v.unidades : 0;
+              const desconto = porUnidade && refUnidade ? Math.round((1 - porUnidade / refUnidade) * 100) : 0;
+              const mudar = (parcial: Partial<typeof v>) => atualizarGrupo(i, { ...g, valores: g.valores.map((x, m) => (m === k ? { ...x, ...parcial } : x)) });
+              return (
+                // precoBase na key: se o preço base mudar, os campos mostram os preços finais atualizados
+                <div key={`${grupos.length}-${i}-${g.valores.length}-${k}-${base}`} className="mb-1.5">
+                  <div className={`grid ${colunas} items-center gap-2`}>
+                    <input className={inp()} value={v.label} onChange={(e) => mudar({ label: e.target.value })} placeholder="Ex.: 50 unidades" />
+                    <input
+                      className={inp()}
+                      inputMode="decimal"
+                      defaultValue={base ? final.toFixed(2).replace(".", ",") : ""}
+                      placeholder={base ? undefined : "—"}
+                      disabled={!base}
+                      title={base ? undefined : "Preencha o preço base primeiro"}
+                      onChange={(e) => {
+                        const n = lerPreco(e.target.value);
+                        mudar({ acrescimo: Number.isNaN(n) ? Number.NaN : Math.round((n - base) * 100) / 100 });
+                      }}
+                    />
+                    <input className={inp()} inputMode="numeric" defaultValue={v.unidades ?? ""} placeholder="—" onChange={(e) => mudar({ unidades: numeroOpcional(e.target.value) })} />
+                    {pedeFotos && (
+                      <input className={inp()} inputMode="numeric" defaultValue={v.fotos ?? ""} placeholder="—" onChange={(e) => mudar({ fotos: numeroOpcional(e.target.value) })} />
+                    )}
+                    <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: g.valores.filter((_, m) => m !== k) })} className="text-texto-fraco hover:text-perigo" aria-label="Remover opção">✕</button>
+                  </div>
+                  {porUnidade > 0 && (
+                    <p className="mt-0.5 pl-1 text-xs text-texto-suave">
+                      R$ {porUnidade.toFixed(2).replace(".", ",")} por unidade
+                      {desconto > 0 && <span className="ml-1 rounded-full bg-sucesso-claro px-1.5 font-bold text-sucesso">-{desconto}%</span>}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <button type="button" onClick={() => atualizarGrupo(i, { ...g, valores: [...g.valores, { label: "", acrescimo: g.valores.at(-1)?.acrescimo ?? 0 }] })} className="text-sm font-semibold text-terracota hover:underline">+ Adicionar opção</button>
+              <span className="text-xs text-texto-fraco">Dica: preencha &quot;Unid.&quot; para a loja mostrar o desconto das quantidades maiores.</span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       <button type="button" onClick={() => onChange([...grupos, { nome: "", valores: [{ label: "", acrescimo: 0 }] }])} className="rounded-xl border border-dashed border-borda px-4 py-2 text-sm font-semibold hover:border-terracota">
         + Adicionar variação (tamanho, acabamento, quantidade…)
       </button>
@@ -378,6 +432,12 @@ function EditorOpcoes({ grupos, onChange, precoBase, pedeFotos }: { grupos: Grup
   );
 }
 
+/** "" → undefined; "12" → 12; qualquer outra coisa → -1 (a validação acusa) */
+function numeroOpcional(texto: string): number | undefined {
+  const t = texto.trim();
+  if (!t) return undefined;
+  return /^\d+$/.test(t) ? Number(t) : -1;
+}
 // ---------------------------------------------------------------------------
 const inp = (erro?: string) =>
   `w-full rounded-xl border-[1.5px] bg-white px-3 py-2.5 text-base outline-none transition focus:border-terracota ${erro ? "border-perigo" : "border-borda"}`;

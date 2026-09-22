@@ -104,8 +104,10 @@ export function validarProduto(f: ProdutoForm): ErrosProduto {
       if (!l) { e.opcoes = `Há uma opção sem nome em "${ng}"`; break; }
       if (labels.has(l.toLowerCase())) { e.opcoes = `Opção "${l}" repetida em "${ng}"`; break; }
       labels.add(l.toLowerCase());
-      if (!Number.isFinite(v.acrescimo) || v.acrescimo < 0) { e.opcoes = `Acréscimo inválido em "${l}"`; break; }
+      if (!Number.isFinite(v.acrescimo)) { e.opcoes = `Preço inválido em "${l}"`; break; }
+      if (preco > 0 && preco + v.acrescimo < 0.01) { e.opcoes = `O preço de "${l}" precisa ser maior que zero`; break; }
       if (v.fotos !== undefined && !(Number.isInteger(v.fotos) && v.fotos >= 1)) { e.opcoes = `Quantidade de fotos inválida em "${l}"`; break; }
+      if (v.unidades !== undefined && !(Number.isInteger(v.unidades) && v.unidades >= 1)) { e.opcoes = `Número de unidades inválido em "${l}"`; break; }
     }
     if (e.opcoes) break;
   }
@@ -166,6 +168,7 @@ export function paraBanco(f: ProdutoForm) {
         label: v.label.trim(),
         acrescimo: Math.round(v.acrescimo * 100) / 100,
         ...(v.fotos ? { fotos: v.fotos } : {}),
+        ...(v.unidades ? { unidades: v.unidades } : {}),
       })),
     })),
     estoque: f.sob_demanda ? null : inteiro(f.estoque),
