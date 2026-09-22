@@ -12,8 +12,10 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 |---|---|---|
 | Fase 0 · Prompt 1 | Projeto Next.js + Tailwind + clientes Supabase (client/server/admin) + proxy de sessão | ✅ |
 | Fase 0 · Prompt 2 | Migration com todas as tabelas, RLS, storage, esteira de status, funções de pagamento/cancelamento + seed com o catálogo real | ✅ |
-| Fase 1 · Prompt 3 | Catálogo (home, categoria, produto) | ⏳ próximo |
-| Fase 1 · Prompts 4–11 | Carrinho, checkout + fotos, Pix, webhook, acompanhamento, admin | — |
+| Fase 1 · Prompt 3 | Vitrine: home, /produtos, /categoria/[slug], /produto/[slug] (galeria, opções, preço ao vivo, Open Graph) | ✅ |
+| Fase 1 · Prompt 4 | Carrinho (Context + localStorage, sincroniza abas, recalcula preço pelo catálogo) | ✅ |
+| Fase 1 · Prompt 5 | Checkout parte 1: dados + entrega + upload de fotos | ⏳ próximo |
+| Fase 1 · Prompts 6–11 | Pix, webhook, acompanhamento, admin | — |
 
 ## Configurar o Supabase (uma vez, ~15 min)
 
