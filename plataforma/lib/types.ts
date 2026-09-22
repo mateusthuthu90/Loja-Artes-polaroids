@@ -54,7 +54,54 @@ export interface Produto {
   novo: boolean;
   ordem: number;
   status: StatusProduto;
+  /** Promoção vigente que vale para este produto (preenchida ao ler o catálogo). */
+  promocao?: Promocao | null;
 }
 
 /** Opções escolhidas pelo cliente: { "Quantidade": "20 unidades" } */
 export type OpcoesEscolhidas = Record<string, string>;
+
+// ---------------------------------------------------------------------------
+// Descontos
+// ---------------------------------------------------------------------------
+export type TipoDesconto = "percentual" | "valor";
+export type EscopoPromocao = "loja" | "categoria" | "produto";
+
+export interface Promocao {
+  id: string;
+  nome: string;
+  selo: string | null;
+  tipo: TipoDesconto;
+  valor: number;
+  escopo: EscopoPromocao;
+  alvos: string[];
+  inicio: string | null;
+  fim: string | null;
+  ativa: boolean;
+}
+
+export type TipoCupom = TipoDesconto | "frete_gratis";
+
+export interface Cupom {
+  id: string;
+  codigo: string;
+  descricao: string | null;
+  tipo: TipoCupom;
+  valor: number;
+  minimo_pedido: number;
+  inicio: string | null;
+  fim: string | null;
+  limite_usos: number | null;
+  usos: number;
+  ativo: boolean;
+}
+
+/** Cupom já validado, do jeito que a loja usa (sem expor os dados internos). */
+export interface CupomAplicado {
+  codigo: string;
+  tipo: TipoCupom;
+  descricao: string | null;
+  /** desconto em reais no subtotal (0 quando o cupom é de frete grátis) */
+  desconto: number;
+  freteGratis: boolean;
+}

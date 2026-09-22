@@ -18,6 +18,7 @@ import {
   type Endereco,
   type Erros,
 } from "@/lib/validacao";
+import { CampoCupom, useCupom } from "../cupom";
 import { useLinhasCarrinho, type LinhaCarrinho } from "../linhas-carrinho";
 import { botaoContorno, botaoPrimario } from "../ui";
 import { useEstadoCheckout, type EstadoCheckout } from "./estado";
@@ -29,6 +30,7 @@ const TITULOS: Record<Etapa, string> = { dados: "Seus dados", entrega: "Entrega"
 export function Checkout({ produtos, config }: { produtos: Produto[]; config: ConfigLoja }) {
   const { linhas, subtotal, carregado } = useLinhasCarrinho(produtos);
   const { estado, atualizar } = useEstadoCheckout();
+  const cupom = useCupom(subtotal);
   const [etapaEscolhida, setEtapa] = useState<Etapa>("dados");
   const [mostrarErros, setMostrarErros] = useState(false);
 
@@ -64,8 +66,10 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
     revisao: true,
   };
 
-  const frete = calcularFrete(subtotal, estado.tipoEntrega, config.frete);
-  const total = subtotal + frete;
+  const desconto = cupom.aplicado?.desconto ?? 0;
+  const freteBase = calcularFrete(subtotal, estado.tipoEntrega, config.frete);
+  const frete = cupom.aplicado?.freteGratis ? 0 : freteBase;
+  const total = Math.max(0, subtotal - desconto) + frete;
 
   function avancar() {
     if (!valido[etapa]) {
@@ -293,7 +297,14 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
         </div>
       </div>
 
-      <Resumo linhas={linhas} subtotal={subtotal} frete={frete} total={total} tipoEntrega={estado.tipoEntrega} />
+      <Resumo
+        linhas={linhas}
+        subtotal={subtotal}
+        frete={frete}
+        total={total}
+        tipoEntrega={estado.tipoEntrega}
+        cupom={cupom}
+      />
     </div>
   );
 }
@@ -424,7 +435,21 @@ function Bloco({ titulo, onEditar, children }: { titulo: string; onEditar: () =>
   );
 }
 
-function Resumo({ linhas, subtotal, frete, total, tipoEntrega }: { linhas: LinhaCarrinho[]; subtotal: number; frete: number; total: number; tipoEntrega: "envio" | "retirada" }) {
+function Resumo({
+  linhas,
+  subtotal,
+  frete,
+  total,
+  tipoEntrega,
+  cupom,
+}: {
+  linhas: LinhaCarrinho[];
+  subtotal: number;
+  frete: number;
+  total: number;
+  tipoEntrega: "envio" | "retirada";
+  cupom: ReturnType<typeof useCupom>;
+}) {
   return (
     <aside className="h-fit rounded-grande border border-borda bg-cartao p-5 lg:sticky lg:top-24">
       <h2 className="mb-4 text-xl font-semibold">Resumo</h2>
@@ -446,11 +471,18 @@ function Resumo({ linhas, subtotal, frete, total, tipoEntrega }: { linhas: Linha
       </ul>
       <div className="space-y-1 border-t border-borda pt-3 text-sm">
         <div className="flex justify-between"><span>Subtotal</span><span>{formatarBRL(subtotal)}</span></div>
+        {cupom.aplicado && cupom.aplicado.desconto > 0 && (
+          <div className="flex justify-between text-sucesso">
+            <span>Cupom {cupom.aplicado.codigo}</span>
+            <span>− {formatarBRL(cupom.aplicado.desconto)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span>{tipoEntrega === "retirada" ? "Retirada" : "Frete"}</span>
           <span>{frete === 0 ? "Grátis" : formatarBRL(frete)}</span>
         </div>
       </div>
+      <CampoCupom {...cupom} />
       <div className="mt-3 flex justify-between border-t border-borda pt-3">
         <span className="font-semibold">Total</span>
         <span className="font-display text-2xl font-bold text-marrom">{formatarBRL(total)}</span>

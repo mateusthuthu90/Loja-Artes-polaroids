@@ -6,6 +6,7 @@ import { Icone } from "@/components/Icone";
 import type { ConfigLoja } from "@/lib/catalogo";
 import { formatarBRL } from "@/lib/preco";
 import type { Produto } from "@/lib/types";
+import { CampoCupom, useCupom } from "./cupom";
 import { temGrupoQuantidade, useLinhasCarrinho } from "./linhas-carrinho";
 import { botaoContorno, botaoPrimario } from "./ui";
 
@@ -19,6 +20,8 @@ export function VisaoCarrinho({
   lojaAberta: boolean;
 }) {
   const { linhas, subtotal, carregado, alterarQuantidade, remover } = useLinhasCarrinho(produtos);
+  const cupom = useCupom(subtotal);
+  const total = Math.max(0, subtotal - (cupom.aplicado?.desconto ?? 0));
 
   if (!carregado) {
     return <p className="py-20 text-center text-texto-suave">Carregando seu carrinho…</p>;
@@ -94,10 +97,17 @@ export function VisaoCarrinho({
           <span>Subtotal</span>
           <span className="font-semibold">{formatarBRL(subtotal)}</span>
         </div>
+        {cupom.aplicado && cupom.aplicado.desconto > 0 && (
+          <div className="mt-2 flex justify-between text-sm text-sucesso">
+            <span>Cupom {cupom.aplicado.codigo}</span>
+            <span>− {formatarBRL(cupom.aplicado.desconto)}</span>
+          </div>
+        )}
         <div className="mt-2 flex justify-between text-sm text-texto-suave">
           <span>Frete</span>
-          <span>calculado no checkout</span>
+          <span>{cupom.aplicado?.freteGratis ? "grátis com o cupom" : "calculado no checkout"}</span>
         </div>
+        <CampoCupom {...cupom} />
         {faltaFreteGratis !== null && (
           <p className="mt-4 rounded-xl bg-sucesso-claro px-3 py-2 text-sm text-sucesso">
             {faltaFreteGratis > 0
@@ -107,7 +117,7 @@ export function VisaoCarrinho({
         )}
         <div className="mt-5 flex justify-between border-t border-borda pt-4">
           <span className="font-semibold">Total</span>
-          <span className="font-display text-2xl font-bold text-marrom">{formatarBRL(subtotal)}</span>
+          <span className="font-display text-2xl font-bold text-marrom">{formatarBRL(total)}</span>
         </div>
 
         {lojaAberta ? (

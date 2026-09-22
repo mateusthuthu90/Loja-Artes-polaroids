@@ -7,8 +7,9 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { melhorPromocao } from "./preco";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigurado } from "./supabase/env";
-import type { Categoria, Produto } from "./types";
+import type { Categoria, Produto, Promocao } from "./types";
 
 export const TAG_CATALOGO = "catalogo";
 const CACHE = { revalidate: 60, tags: [TAG_CATALOGO] };
@@ -36,20 +37,38 @@ function normalizar(p: Produto): Produto {
   return { ...p, preco: Number(p.preco) };
 }
 
+/** Promoções vigentes (o RLS já filtra período e ativa). */
+export const listarPromocoes = unstable_cache(
+  async (): Promise<Promocao[]> => {
+    if (!supabaseConfigurado()) return [];
+    const { data, error } = await clientePublico().from("promocoes").select("*");
+    if (error) {
+      console.error("[catalogo] erro ao listar promoções:", error.message);
+      return [];
+    }
+    return (data as Promocao[]).map((p) => ({ ...p, valor: Number(p.valor), alvos: p.alvos ?? [] }));
+  },
+  ["promocoes-vigentes"],
+  // janela menor: promoção começa/termina na hora marcada
+  { revalidate: 30, tags: [TAG_CATALOGO] },
+);
+
 export const listarProdutos = unstable_cache(
   async (): Promise<Produto[]> => {
     if (!supabaseConfigurado()) return [];
-    const { data, error } = await clientePublico()
-      .from("produtos")
-      .select("*")
-      .eq("status", "publicado")
-      .order("ordem")
-      .order("nome");
+    const [{ data, error }, promocoes] = await Promise.all([
+      clientePublico().from("produtos").select("*").eq("status", "publicado").order("ordem").order("nome"),
+      listarPromocoes(),
+    ]);
     if (error) {
       console.error("[catalogo] erro ao listar produtos:", error.message);
       return [];
     }
-    return (data as Produto[]).filter(produtoExibivel).map(normalizar);
+    return (data as Produto[])
+      .filter(produtoExibivel)
+      .map(normalizar)
+      // cada produto já sai do catálogo com a promoção que vale para ele
+      .map((p) => ({ ...p, promocao: melhorPromocao(p, promocoes) }));
   },
   ["produtos-publicados"],
   CACHE,

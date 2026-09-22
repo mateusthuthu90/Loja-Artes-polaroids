@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Icone } from "@/components/Icone";
-import { descontosPorQuantidade, esgotado, formatarBRL, fotosPorUnidade, precoUnitario } from "@/lib/preco";
+import {
+  descontosPorQuantidade,
+  esgotado,
+  formatarBRL,
+  fotosPorUnidade,
+  percentualPromocao,
+  precoCheio,
+  precoUnitario,
+} from "@/lib/preco";
 import type { OpcoesEscolhidas, Produto } from "@/lib/types";
 import { QUANTIDADE_MAXIMA, useCarrinho } from "./carrinho";
 import { botaoContorno, botaoPrimario } from "./ui";
@@ -35,7 +43,15 @@ export function CompraProduto({ produto }: { produto: Produto }) {
 
   return (
     <div>
-      <p className={`font-display text-3xl font-bold text-marrom ${descontoEscolhido ? "mb-1" : "mb-5"}`}>
+      {produto.promocao && (
+        <p className="mb-1 flex flex-wrap items-center gap-2 text-sm">
+          <span className="rounded-full bg-perigo px-2 py-0.5 text-xs font-bold text-white">
+            {produto.promocao.selo || "Promoção"} · -{percentualPromocao(produto, opcoes)}%
+          </span>
+          <span className="text-texto-fraco line-through">{formatarBRL(precoCheio(produto, opcoes) * quantidade)}</span>
+        </p>
+      )}
+      <p className={`font-display text-3xl font-bold ${produto.promocao ? "text-perigo" : "text-marrom"} ${descontoEscolhido ? "mb-1" : "mb-5"}`}>
         {formatarBRL(unitario * quantidade)}
         {quantidade > 1 && (
           <span className="ml-2 font-sans text-sm font-medium text-texto-suave">

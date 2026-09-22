@@ -1,6 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { descontosPorQuantidade, esgotado, formatarBRL, precoMinimo, temPrecoVariavel } from "@/lib/preco";
+import {
+  descontosPorQuantidade,
+  esgotado,
+  formatarBRL,
+  percentualPromocao,
+  precoMinimo,
+  precoMinimoCheio,
+  temPrecoVariavel,
+} from "@/lib/preco";
 import type { Produto } from "@/lib/types";
 
 export function CardProduto({ produto, categoria }: { produto: Produto; categoria?: string }) {
@@ -36,6 +44,10 @@ export function CardProduto({ produto, categoria }: { produto: Produto; categori
           <span className="absolute left-3 top-3 rounded-full bg-texto px-2.5 py-1 text-[0.68rem] font-bold text-creme-claro">
             Esgotado
           </span>
+        ) : produto.promocao ? (
+          <span className="absolute left-3 top-3 rounded-full bg-perigo px-2.5 py-1 text-[0.68rem] font-bold text-white">
+            {produto.promocao.selo || `-${percentualPromocao(produto)}%`}
+          </span>
         ) : (
           produto.novo && (
             <span className="absolute left-3 top-3 rounded-full bg-dourado px-2.5 py-1 text-[0.68rem] font-bold text-[#3a2b0f]">
@@ -58,6 +70,11 @@ export function CardProduto({ produto, categoria }: { produto: Produto; categori
         <p className="mt-auto pt-3 font-display text-lg font-bold text-marrom sm:text-xl">
           {temPrecoVariavel(produto) && (
             <span className="mr-1 font-sans text-xs font-medium text-texto-suave">A partir de</span>
+          )}
+          {produto.promocao && (
+            <span className="mr-1.5 font-sans text-sm font-medium text-texto-fraco line-through">
+              {formatarBRL(precoMinimoCheio(produto))}
+            </span>
           )}
           {formatarBRL(precoMinimo(produto))}
           {maiorDesconto > 0 && (
