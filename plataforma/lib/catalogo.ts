@@ -9,7 +9,7 @@ import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { melhorPromocao } from "./preco";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigurado } from "./supabase/env";
-import type { Categoria, Produto, Promocao } from "./types";
+import type { Categoria, Produto, Promocao, TextosHome } from "./types";
 
 export const TAG_CATALOGO = "catalogo";
 const CACHE = { revalidate: 60, tags: [TAG_CATALOGO] };
@@ -109,12 +109,47 @@ export async function buscarProduto(slug: string): Promise<Produto | null> {
 // ---------------------------------------------------------------------------
 export interface ConfigLoja {
   loja: { aberta: boolean; mensagem_fechada: string };
+  /** @deprecated O hero agora vem da tabela home_banners (painel → Home). */
   banner_home: { titulo: string; subtitulo: string; imagem: string };
+  /** Textos das seções fixas da home, editáveis em painel → Home → Textos. */
+  home_textos: TextosHome;
   frete: { tipo: "fixo"; valor: number; gratis_acima: number | null };
   retirada: { ativa: boolean; endereco: string };
   prazo_producao: { dias_uteis: number };
   contato: { whatsapp: string; instagram: string; email: string };
 }
+
+export const TEXTOS_HOME_PADRAO: TextosHome = {
+  categorias: { ativo: true },
+  como_funciona: {
+    ativo: true,
+    selo: "Simples assim",
+    titulo: "Como funciona",
+    subtitulo: `Do clique de "comprar" até a lembrança na sua mão, sem complicação.`,
+    passos: [
+      { titulo: "Escolha seus produtos", texto: "Navegue pela coleção e monte seu pedido do jeitinho que quiser." },
+      { titulo: "Envie suas fotos", texto: "Ao finalizar o pedido, você sobe as fotos direto aqui no site. Sem bagunça no WhatsApp." },
+      { titulo: "Pague com Pix", texto: "O pagamento é confirmado na hora e o seu pedido já entra na nossa fila de produção." },
+      { titulo: "Receba suas lembranças", texto: "Produzimos tudo à mão e enviamos com carinho, ou você retira com a gente." },
+    ],
+  },
+  chamada: {
+    ativo: true,
+    titulo: "Pronto para eternizar seus momentos?",
+    texto: "Escolha sua lembrança favorita e receba com todo o cuidado que suas memórias merecem.",
+    botao: "Começar meu pedido",
+    link: "/produtos",
+  },
+  beneficios: {
+    ativo: true,
+    itens: [
+      { icone: "camera", titulo: "Qualidade premium", texto: "Papel fotográfico profissional Fujifilm: à prova d'água, não amarela e não desbota." },
+      { icone: "caminhao", titulo: "Enviamos para todo o Brasil", texto: "Envio com código de rastreio, ou retirada com a gente." },
+      { icone: "coracao", titulo: "Feito com carinho", texto: "Cada peça é produzida artesanalmente, com atenção aos detalhes." },
+      { icone: "escudo", titulo: "Pagamento seguro", texto: "Pix com confirmação automática, processado pelo Mercado Pago." },
+    ],
+  },
+};
 
 const CONFIG_PADRAO: ConfigLoja = {
   loja: { aberta: true, mensagem_fechada: "" },
@@ -124,6 +159,7 @@ const CONFIG_PADRAO: ConfigLoja = {
       "Transforme suas fotos favoritas em lembranças para guardar, presentear e reviver.",
     imagem: "/images/hero/hero-main.jpg",
   },
+  home_textos: TEXTOS_HOME_PADRAO,
   frete: { tipo: "fixo", valor: 14.9, gratis_acima: 100 },
   retirada: { ativa: true, endereco: "" },
   prazo_producao: { dias_uteis: 5 },
@@ -133,6 +169,22 @@ const CONFIG_PADRAO: ConfigLoja = {
     email: "artes.polaroids1@gmail.com",
   },
 };
+
+/**
+ * Junta o que veio do banco com os valores padrão, descendo pelos objetos
+ * aninhados. Chave que o banco não trouxe mantém o padrão — assim um JSON
+ * salvo pela metade (ou de uma versão antiga) nunca deixa a home sem texto.
+ * Lista (passos, benefícios) é substituída inteira, não item a item.
+ */
+function mesclar(padrao: unknown, valor: unknown): unknown {
+  if (Array.isArray(padrao) || Array.isArray(valor)) return valor;
+  if (!padrao || typeof padrao !== "object" || !valor || typeof valor !== "object") return valor;
+  const saida = { ...(padrao as Record<string, unknown>) };
+  for (const [k, v] of Object.entries(valor as Record<string, unknown>)) {
+    saida[k] = k in saida ? mesclar(saida[k], v) : v;
+  }
+  return saida;
+}
 
 export const lerConfig = unstable_cache(
   async (): Promise<ConfigLoja> => {
@@ -146,7 +198,7 @@ export const lerConfig = unstable_cache(
     for (const { chave, valor } of data as { chave: string; valor: unknown }[]) {
       const padrao = config[chave];
       if (padrao && typeof padrao === "object" && valor && typeof valor === "object") {
-        config[chave] = { ...padrao, ...valor };
+        config[chave] = mesclar(padrao, valor);
       }
     }
     return config as unknown as ConfigLoja;

@@ -105,3 +105,100 @@ export interface CupomAplicado {
   desconto: number;
   freteGratis: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Home editável pelo painel (migration 20260923000005_home_cms)
+// ---------------------------------------------------------------------------
+
+/** Slide do carrossel principal da home. */
+export interface BannerHome {
+  id: string;
+  selo: string;
+  titulo: string;
+  /** Trecho final do título, destacado em itálico. Pode ficar vazio. */
+  destaque: string;
+  subtitulo: string;
+  /** Legenda manuscrita na borda da polaroid. */
+  legenda: string;
+  cta_texto: string;
+  cta_link: string;
+  imagem: string;
+  imagem_alt: string;
+  /** Polaroid menor de apoio. null = slide com uma foto só. */
+  apoio: string | null;
+  apoio_alt: string;
+  /** Cor do halo de fundo — muda a temperatura do slide sem sair da paleta. */
+  halo: string;
+  giro_principal: number;
+  giro_apoio: number;
+  ordem: number;
+  ativo: boolean;
+}
+
+/** De onde a seção tira os produtos que mostra. */
+export type FonteSecao =
+  | "destaques"
+  | "novidades"
+  | "promocao"
+  | "mais_vendidos"
+  | "categoria"
+  | "manual";
+
+export type LayoutSecao = "grade" | "carrossel";
+export type FundoSecao = "claro" | "branco";
+
+/** Faixa de produtos da home, montada no painel. */
+export interface SecaoHome {
+  id: string;
+  selo: string;
+  titulo: string;
+  subtitulo: string;
+  fonte: FonteSecao;
+  categoria_id: string | null;
+  /** Usado só quando fonte = "manual": os produtos escolhidos, na ordem escolhida. */
+  produto_ids: string[];
+  limite: number;
+  layout: LayoutSecao;
+  fundo: FundoSecao;
+  link_texto: string;
+  link_href: string;
+  ordem: number;
+  ativa: boolean;
+}
+
+/** Seção já resolvida: com os produtos que vão aparecer. */
+export interface SecaoResolvida extends SecaoHome {
+  produtos: Produto[];
+}
+
+// --- Textos das seções fixas (configuracoes.home_textos) --------------------
+
+export interface PassoHome {
+  titulo: string;
+  texto: string;
+}
+
+export interface BeneficioHome {
+  icone: string;
+  titulo: string;
+  texto: string;
+}
+
+export interface TextosHome {
+  categorias: { ativo: boolean };
+  como_funciona: {
+    ativo: boolean;
+    selo: string;
+    titulo: string;
+    subtitulo: string;
+    passos: PassoHome[];
+  };
+  chamada: {
+    ativo: boolean;
+    titulo: string;
+    texto: string;
+    botao: string;
+    link: string;
+  };
+  beneficios: { ativo: boolean; itens: BeneficioHome[] };
+}

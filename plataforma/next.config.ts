@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-// Fotos de produto enviadas pelo painel ficam no Storage do Supabase (bucket público "produtos").
+// Fotos enviadas pelo painel ficam no Storage do Supabase, em buckets públicos:
+// "produtos" (fotos de produto) e "site" (banners da home).
 const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
   : undefined;

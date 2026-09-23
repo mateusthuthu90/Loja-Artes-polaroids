@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { botaoContorno, botaoPrimario } from "@/components/loja/ui";
 import { Icone } from "@/components/Icone";
-import type { SlideBanner } from "@/lib/banners";
+import type { BannerHome } from "@/lib/types";
 
 const DURACAO = 7000;
 
-export function BannerHero({ slides }: { slides: SlideBanner[] }) {
+export function BannerHero({ slides }: { slides: BannerHome[] }) {
   const [indice, setIndice] = useState(0);
   const [pausado, setPausado] = useState(false);
   const [reduzido, setReduzido] = useState(false);
@@ -118,8 +118,8 @@ export function BannerHero({ slides }: { slides: SlideBanner[] }) {
                   {s.subtitulo}
                 </p>
                 <div className="bh-item mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-                  <Link href="/produtos" className={botaoPrimario}>
-                    {s.cta}
+                  <Link href={s.cta_link || "/produtos"} className={botaoPrimario}>
+                    {s.cta_texto}
                   </Link>
                   <Link href="#como-funciona" className={botaoContorno}>
                     Como funciona
@@ -154,12 +154,12 @@ export function BannerHero({ slides }: { slides: SlideBanner[] }) {
             return (
               <div key={s.id} className={`bh-cena ${ativo ? "bh-on" : ""}`} aria-hidden={!ativo}>
                 <div className="bh-flutua" style={{ ["--f" as string]: "-16px" }}>
-                  <figure className="bh-polaroid" style={{ ["--giro" as string]: s.giro[0] }}>
+                  <figure className="bh-polaroid" style={{ ["--giro" as string]: `${s.giro_principal}deg` }}>
                     <span className="bh-fita" aria-hidden />
                     <div className="bh-foto">
                       <Image
-                        src={s.imagem.src}
-                        alt={s.imagem.alt}
+                        src={s.imagem}
+                        alt={s.imagem_alt}
                         fill
                         // o slide 1 é o LCP da home; `priority` saiu no Next 16
                         loading={i === 0 ? "eager" : "lazy"}
@@ -168,26 +168,29 @@ export function BannerHero({ slides }: { slides: SlideBanner[] }) {
                         className="bh-kb object-cover"
                       />
                     </div>
-                    <figcaption className="bh-legenda">{s.legenda}</figcaption>
+                    {s.legenda && <figcaption className="bh-legenda">{s.legenda}</figcaption>}
                   </figure>
                 </div>
 
-                <div className="bh-flutua bh-flutua--apoio" style={{ ["--f" as string]: "30px" }}>
-                  <figure
-                    className="bh-polaroid bh-polaroid--apoio"
-                    style={{ ["--giro" as string]: s.giro[1] }}
-                  >
-                    <div className="bh-foto">
-                      <Image
-                        src={s.apoio.src}
-                        alt={s.apoio.alt}
-                        fill
-                        sizes="(max-width: 768px) 34vw, 180px"
-                        className="bh-kb object-cover"
-                      />
-                    </div>
-                  </figure>
-                </div>
+                {/* a polaroid de apoio é opcional: slide com uma foto só fica limpo */}
+                {s.apoio && (
+                  <div className="bh-flutua bh-flutua--apoio" style={{ ["--f" as string]: "30px" }}>
+                    <figure
+                      className="bh-polaroid bh-polaroid--apoio"
+                      style={{ ["--giro" as string]: `${s.giro_apoio}deg` }}
+                    >
+                      <div className="bh-foto">
+                        <Image
+                          src={s.apoio}
+                          alt={s.apoio_alt}
+                          fill
+                          sizes="(max-width: 768px) 34vw, 180px"
+                          className="bh-kb object-cover"
+                        />
+                      </div>
+                    </figure>
+                  </div>
+                )}
               </div>
             );
           })}

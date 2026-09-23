@@ -28,6 +28,14 @@ const ICONES: Record<string, ReactNode> = {
       <circle cx="12" cy="13.5" r="3" />
     </>
   ),
+  home: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M7 13h5" />
+      <path d="M7 16.5h8" />
+    </>
+  ),
   estoque: (
     <>
       <path d="M3 8.5L12 4l9 4.5v7L12 20l-9-4.5z" />
@@ -53,6 +61,7 @@ const ICONES: Record<string, ReactNode> = {
 const ITENS = [
   { href: "/admin", rotulo: "Dashboard", icone: "dashboard" },
   { href: "/admin/pedidos", rotulo: "Pedidos", icone: "pedidos" },
+  { href: "/admin/home", rotulo: "Home", icone: "home" },
   { href: "/admin/produtos", rotulo: "Produtos", icone: "produtos" },
   { href: "/admin/estoque", rotulo: "Estoque", icone: "estoque" },
   { href: "/admin/descontos", rotulo: "Descontos", icone: "descontos" },

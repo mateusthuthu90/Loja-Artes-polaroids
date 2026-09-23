@@ -20,7 +20,8 @@ export default async function PaginaConfiguracoes() {
         ))}
       </ul>
       <EmBreve etapa="Prompt 12">
-        Formulário para editar frete, prazo de produção, banner da home, WhatsApp da loja e modo férias, sem mexer em código.
+        Formulário para editar frete, prazo de produção, WhatsApp da loja e modo férias, sem mexer em código.
+        (O conteúdo da página inicial já se edita em <strong>Home</strong>.)
       </EmBreve>
     </div>
   );

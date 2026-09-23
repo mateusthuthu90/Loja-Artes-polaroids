@@ -339,3 +339,52 @@ h4 {
   .bh-preenche { animation: none; transform: scaleX(1); }
   .bh { transition: none; }
 }
+
+/* ==========================================================================
+   Faixas de produtos da home (seções em carrossel)
+   Rolagem horizontal com encaixe: no celular o dedo arrasta, no desktop as
+   setas rolam uma "página". Barra de rolagem escondida — a sombra da borda
+   direita já sinaliza que há mais coisa.
+   ========================================================================== */
+.trilho-h {
+  display: grid;
+  grid-auto-flow: column;
+  /* largura fixa por card: no celular sobra uma tirinha do próximo, que é o
+     que avisa ao dedo que dá para arrastar */
+  grid-auto-columns: 44vw;
+  justify-content: start;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  padding-bottom: 0.25rem;
+}
+
+.trilho-h::-webkit-scrollbar {
+  display: none;
+}
+
+.trilho-h > * {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .trilho-h {
+    grid-auto-columns: 240px;
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .trilho-h {
+    grid-auto-columns: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trilho-h {
+    scroll-behavior: auto;
+  }
+}

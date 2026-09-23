@@ -6,19 +6,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icone } from "@/components/Icone";
 
-const SAIDA_L = 1600;
-const SAIDA_A = 1520; // proporção 1 : 0,95 (galeria e cards da loja)
 const ZOOM_MAX = 4;
 const FUNDOS = { branco: "#ffffff", creme: "#faf5ea" } as const;
+
+/** Formatos de saída — cada um casa com o lugar onde a foto vai aparecer. */
+export const FORMATOS = {
+  /** 1 : 0,95 — galeria e cards de produto */
+  produto: { largura: 1600, altura: 1520 },
+  /** 4 : 5 — polaroid do banner da home */
+  banner: { largura: 1280, altura: 1600 },
+} as const;
+
+export type FormatoFoto = keyof typeof FORMATOS;
 
 interface Props {
   fonte: Blob;
   titulo: string;
+  formato?: FormatoFoto;
   onConcluir: (resultado: Blob) => void;
   onCancelar: () => void;
 }
 
-export function EditorFoto({ fonte, titulo, onConcluir, onCancelar }: Props) {
+export function EditorFoto({ fonte, titulo, formato = "produto", onConcluir, onCancelar }: Props) {
+  const { largura: SAIDA_L, altura: SAIDA_A } = FORMATOS[formato];
   const quadro = useRef<HTMLDivElement>(null);
   const arrasto = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const [bitmap, setBitmap] = useState<ImageBitmap | null>(null);

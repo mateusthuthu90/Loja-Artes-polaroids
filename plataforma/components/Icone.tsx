@@ -88,6 +88,13 @@ const CAMINHOS = {
 
 export type NomeIcone = keyof typeof CAMINHOS;
 
+/** Lista para o painel oferecer só ícones que existem de verdade. */
+export const NOMES_ICONES = Object.keys(CAMINHOS) as NomeIcone[];
+
+export function iconeValido(nome: string): NomeIcone {
+  return (nome in CAMINHOS ? nome : "estrela") as NomeIcone;
+}
+
 export function Icone({ nome, className = "h-5 w-5", ...props }: { nome: NomeIcone } & SVGProps<SVGSVGElement>) {
   return (
     <svg

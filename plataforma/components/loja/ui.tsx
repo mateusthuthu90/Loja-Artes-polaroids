@@ -15,13 +15,13 @@ export function CabecalhoSecao({
   titulo,
   subtitulo,
 }: {
-  selo: string;
+  selo?: string;
   titulo: string;
   subtitulo?: string;
 }) {
   return (
     <div className="mx-auto mb-10 max-w-2xl text-center">
-      <Selo>{selo}</Selo>
+      {selo && <Selo>{selo}</Selo>}
       <h2 className="text-3xl font-semibold sm:text-4xl">{titulo}</h2>
       {subtitulo && <p className="mt-3 text-texto-suave">{subtitulo}</p>}
     </div>

@@ -24,6 +24,7 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 | Fase 1 · Prompt 7b | Cartão de crédito com parcelamento (Card Payment Brick; juros do cliente, à vista por conta da loja) | ⚠️ escrito, **sem teste real** |
 | Fase 1 · Prompts 8, 11 | Acompanhamento do cliente, gestão de pedidos no painel | — |
 | Extra | Descontos: cupons e promoções (painel + loja) | ✅ |
+| Extra | Home editável no painel: banners (com upload das fotos), seções de produtos e textos — nada da página inicial é código | ✅ |
 | Extra | Publicação na Cloudflare Workers (adaptador OpenNext) | ✅ |
 
 ## Continuar em outra máquina
@@ -83,11 +84,13 @@ npx wrangler deploy         # publica
    3. `supabase/migrations/20260923000004_pagamento_cartao.sql`
    4. `supabase/seed.sql`
    5. `supabase/migrations/20260922000003_corrige_descricao_config.sql`
+   6. `supabase/migrations/20260923000005_home_cms.sql`
 
    As três primeiras só criam e alteram tabelas, então vêm antes do seed. A
-   última **corrige uma linha que o seed cria**, por isso roda depois dele — o
+   quinta **corrige uma linha que o seed cria**, por isso roda depois dele — o
    seed usa `on conflict do nothing` e não se corrige sozinho numa segunda
-   passada.
+   passada. A última cria a home editável e semeia as seções de categoria,
+   então precisa das categorias já criadas pelo seed.
 3. **Authentication → Sign In / Providers**: desligue *Allow new users to sign up*.
 4. **Authentication → Users → Add user**: crie o seu usuário (e-mail + senha).
    Copie o *User UID* e rode no SQL Editor:
@@ -129,6 +132,8 @@ e lista os produtos publicados vindos do banco.
 app/               páginas (loja em /, admin em /admin — a partir do Prompt 3)
 lib/supabase/      client.ts (navegador) · server.ts (server components) · admin.ts (service role, só servidor) · proxy.ts
 lib/preco.ts       cálculo de preço/fotos — o MESMO código na tela e no checkout do servidor
+lib/home.ts        home montada no painel: banners, seções e o ranking de mais vendidos
+lib/home-form.ts   validação da home — a mesma na tela e no servidor
 lib/types.ts       tipos das tabelas
 proxy.ts           renova sessão e bloqueia /admin/* sem login (no Next 16, "middleware" virou "proxy")
 supabase/          migrations + seed
