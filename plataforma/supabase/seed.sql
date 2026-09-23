@@ -152,7 +152,7 @@ insert into public.configuracoes (chave, valor, publica, descricao) values
   ('retirada',      '{"ativa": true, "endereco": "Caratinga - MG (combinar pelo WhatsApp)"}', true,
                     'Retirada presencial'),
   ('prazo_producao',  '{"dias_uteis": 5}', true,
-                    '[PENDENTE] Prazo de produção exibido na loja (regra 6.1)'),
+                    'Prazo de produção exibido na loja (regra 6.1)'),
   ('contato',       '{"whatsapp": "5533998035543", "instagram": "artes.polaroids", "email": "artes.polaroids1@gmail.com"}', true,
                     'Canais de contato da loja'),
   ('pedido_expiracao_horas', '24', false,

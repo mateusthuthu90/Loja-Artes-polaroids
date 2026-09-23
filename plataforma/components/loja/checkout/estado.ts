@@ -29,7 +29,7 @@ export interface EstadoCheckout {
 function novoEstado(): EstadoCheckout {
   return {
     sessao: crypto.randomUUID(),
-    dados: { nome: "", whatsapp: "", email: "" },
+    dados: { nome: "", whatsapp: "", email: "", cpf: "" },
     tipoEntrega: "envio",
     endereco: { cep: "", rua: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" },
     observacoes: "",

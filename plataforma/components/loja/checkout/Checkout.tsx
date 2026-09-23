@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Icone, type NomeIcone } from "@/components/Icone";
 import type { ConfigLoja } from "@/lib/catalogo";
@@ -9,6 +10,7 @@ import { calcularFrete, formatarBRL } from "@/lib/preco";
 import type { Produto } from "@/lib/types";
 import {
   mascararCep,
+  mascararCpf,
   mascararWhatsApp,
   semErros,
   somenteDigitos,
@@ -28,11 +30,14 @@ type Etapa = "dados" | "entrega" | "fotos" | "revisao";
 const TITULOS: Record<Etapa, string> = { dados: "Seus dados", entrega: "Entrega", fotos: "Fotos", revisao: "Revisão" };
 
 export function Checkout({ produtos, config }: { produtos: Produto[]; config: ConfigLoja }) {
-  const { linhas, subtotal, carregado } = useLinhasCarrinho(produtos);
-  const { estado, atualizar } = useEstadoCheckout();
+  const { linhas, subtotal, carregado, limpar } = useLinhasCarrinho(produtos);
+  const { estado, atualizar, reiniciar } = useEstadoCheckout();
   const cupom = useCupom(subtotal);
+  const router = useRouter();
   const [etapaEscolhida, setEtapa] = useState<Etapa>("dados");
   const [mostrarErros, setMostrarErros] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
   if (!carregado || !estado) {
     return <p className="py-20 text-center text-texto-suave">Carregando…</p>;
@@ -79,6 +84,58 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
     setMostrarErros(false);
     setEtapa(etapas[indice + 1]);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /**
+   * Fecha o pedido: o servidor recalcula tudo e devolve o código.
+   * Só limpamos carrinho e checkout DEPOIS do pedido criado — se der erro no
+   * caminho, o cliente não perde o que já preencheu.
+   */
+  async function finalizar() {
+    if (enviando || !estado) return;
+    setEnviando(true);
+    setErroEnvio(null);
+
+    try {
+      const resposta = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessao: estado.sessao,
+          dados: estado.dados,
+          tipoEntrega: estado.tipoEntrega,
+          endereco: estado.endereco,
+          observacoes: estado.observacoes,
+          cupom: cupom.aplicado?.codigo ?? null,
+          itens: linhas.map((l) => ({
+            produtoId: l.produto.id,
+            opcoes: l.item.opcoes,
+            quantidade: l.item.quantidade,
+            fotos: (estado.fotos[l.item.chave] ?? []).map((f) => ({
+              caminho: f.caminho,
+              nome: f.nome,
+            })),
+          })),
+        }),
+      });
+
+      const corpo = (await resposta.json().catch(() => null)) as
+        | { codigo?: string; erro?: string }
+        | null;
+
+      if (!resposta.ok || !corpo?.codigo) {
+        setErroEnvio(corpo?.erro ?? "Não foi possível finalizar. Tente novamente.");
+        setEnviando(false);
+        return;
+      }
+
+      limpar();
+      reiniciar();
+      router.push(`/checkout/pix/${corpo.codigo}`);
+    } catch {
+      setErroEnvio("Sem conexão com a loja. Verifique a internet e tente de novo.");
+      setEnviando(false);
+    }
   }
 
   function irPara(e: Etapa) {
@@ -139,7 +196,7 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
                 placeholder="(33) 99999-9999"
               />
             </Campo>
-            <Campo rotulo="E-mail (opcional)" dica="Para receber a confirmação do pedido" erro={mostrarErros ? errosDados.email : undefined}>
+            <Campo rotulo="E-mail" dica="Para receber a confirmação do pedido e do Pix" erro={mostrarErros ? errosDados.email : undefined}>
               <input
                 className={input}
                 type="email"
@@ -147,6 +204,20 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
                 value={estado.dados.email}
                 onChange={(e) => setDados("email", e.target.value)}
                 placeholder="voce@email.com"
+              />
+            </Campo>
+            <Campo
+              rotulo="CPF"
+              dica="Exigido pelo banco para gerar o Pix. Não fica guardado com a gente."
+              erro={mostrarErros ? errosDados.cpf : undefined}
+            >
+              <input
+                className={input}
+                inputMode="numeric"
+                autoComplete="off"
+                value={mascararCpf(estado.dados.cpf)}
+                onChange={(e) => setDados("cpf", somenteDigitos(e.target.value).slice(0, 11))}
+                placeholder="000.000.000-00"
               />
             </Campo>
           </Cartao>
@@ -286,12 +357,16 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
               Continuar →
             </button>
           ) : (
-            // O pagamento Pix (criação do pedido + QR Code) é o Prompt 6
             <div className="text-center sm:text-right">
-              <button type="button" disabled className={`${botaoPrimario} w-full sm:w-auto`}>
-                Pagar {formatarBRL(total)} com Pix
+              <button
+                type="button"
+                onClick={finalizar}
+                disabled={enviando}
+                className={`${botaoPrimario} w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto`}
+              >
+                {enviando ? "Gerando seu Pix…" : `Pagar ${formatarBRL(total)} com Pix`}
               </button>
-              <p className="mt-1 text-xs text-texto-fraco">O pagamento com Pix chega na próxima etapa.</p>
+              {erroEnvio && <p className="mt-2 text-sm text-perigo sm:text-right">{erroEnvio}</p>}
             </div>
           )}
         </div>

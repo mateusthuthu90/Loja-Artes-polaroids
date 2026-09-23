@@ -17,10 +17,11 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 | Fase 1 · Prompt 3 | Vitrine: home, /produtos, /categoria/[slug], /produto/[slug] (galeria, opções, preço ao vivo, Open Graph) | ✅ |
 | Fase 1 · Prompt 4 | Carrinho (Context + localStorage, sincroniza abas, recalcula preço pelo catálogo) | ✅ |
 | Fase 1 · Prompt 5 | Checkout parte 1: dados (máscara), entrega (CEP automático via ViaCEP), upload de fotos por item (compressão, URLs assinadas, bucket privado) | ✅ |
-| Fase 1 · Prompt 6 | Checkout parte 2: criar pedido + Pix (Mercado Pago) | ⏳ próximo |
+| Fase 1 · Prompt 6 | Checkout parte 2: criar pedido + Pix (Mercado Pago), CPF do pagador, tela do QR Code | ⚠️ escrito, **sem teste real** (falta `.env.local` + credenciais do MP) |
 | Fase 1 · Prompt 9 | Admin: login (Supabase Auth + tabela admins), proteção de /admin, menu, dashboard com números reais, listas de pedidos/produtos/configurações (leitura) | ✅ |
 | Fase 1 · Prompt 10 | Admin de produtos: criar/editar (fotos com compressão, variações, fotos do cliente, estoque), publicar/despublicar, duplicar, excluir (vira inativo se tiver pedidos), categorias, pré-visualização e log de ações | ✅ |
-| Fase 1 · Prompts 7, 8, 11 | Webhook, acompanhamento, gestão de pedidos | — |
+| Fase 1 · Prompt 7 | Webhook do Mercado Pago — **sem ele o pedido pago nunca é confirmado** | ⏳ próximo |
+| Fase 1 · Prompts 8, 11 | Acompanhamento do cliente, gestão de pedidos no painel | — |
 | Extra | Descontos: cupons e promoções (painel + loja) | ✅ |
 | Extra | Publicação na Cloudflare Workers (adaptador OpenNext) | ✅ |
 
