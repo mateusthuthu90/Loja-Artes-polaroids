@@ -1,0 +1,239 @@
+/* ==========================================================================
+   Banner da home — components/loja/BannerHero.tsx
+
+   Foto sangrada de ponta a ponta, título deitado na faixa esquerda e frase de
+   apoio no canto inferior direito. Fica em arquivo próprio porque é o único
+   bloco da loja com tipografia e grade próprias (Poppins, não a do site).
+
+   O tamanho vem só da proporção: 1390 x 400 (≈ 3,5:1) no desktop e 4:3 no
+   celular. Como a caixa é um "container de tamanho", tudo lá dentro é medido
+   em cqh (1cqh = 1% da altura do banner) e encolhe junto, sem media query.
+   Para mudar a altura do banner basta trocar a proporção aqui embaixo.
+   ========================================================================== */
+
+.bhn {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  /* cor de espera enquanto a foto não chega; combina com o filtro quente */
+  background: #2b1e15;
+  aspect-ratio: 4 / 3;
+  container-type: size;
+
+  --margem: 6%;
+  --apoio-base: 16%;
+}
+
+@media (min-width: 768px) {
+  .bhn {
+    aspect-ratio: 1390 / 400;
+    --margem: 4%;
+    --apoio-base: 10%;
+  }
+}
+
+/* ---------- slides empilhados: só a opacidade troca ---------- */
+.bhn-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 600ms ease, visibility 0s linear 600ms;
+}
+
+.bhn-slide[data-ativo="true"] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 600ms ease, visibility 0s;
+}
+
+.bhn-foto {
+  object-fit: cover;
+  /* filtro quente e dessaturado: as fotos do ateliê ficam com cara de
+     analógica e param de brigar com o texto branco por cima */
+  filter: sepia(0.3) saturate(0.82) contrast(1.03) brightness(0.96);
+}
+
+/* Três véus sobrepostos, cada um servindo a um texto:
+   o radial escurece o canto inferior direito (frase de apoio), o linear da
+   esquerda cobre a faixa do título e o de baixo assenta a barra de controles. */
+.bhn-veu {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(118% 112% at 88% 92%, rgba(38, 25, 16, 0.68), rgba(38, 25, 16, 0) 60%),
+    linear-gradient(to right, rgba(38, 25, 16, 0.5), rgba(38, 25, 16, 0) 34%),
+    linear-gradient(to top, rgba(38, 25, 16, 0.32), rgba(38, 25, 16, 0) 52%);
+}
+
+/* A foto inteira é o link do slide. Fica abaixo dos textos (que não recebem
+   clique) e abaixo dos controles (que recebem o seu próprio). */
+.bhn-area {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ---------- título deitado ----------
+   O texto gira -90° (lê de baixo para cima) e fica centrado na vertical, a 8%
+   da borda esquerda. Para ocupar quase toda a altura sem estourar nos títulos
+   longos, o corpo é o menor entre um teto fixo e a altura dividida pelo número
+   de caracteres (--n, mandado pelo componente). 0,54em é a largura média de um
+   caractere minúsculo da Poppins 800. */
+.bhn-titulo {
+  position: absolute;
+  left: 8%;
+  top: 50%;
+  z-index: 2;
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
+  white-space: nowrap;
+  pointer-events: none;
+
+  font-family: var(--font-poppins), "Segoe UI", sans-serif;
+  font-weight: 800;
+  font-size: min(11.5cqh, calc(86cqh / (var(--n, 14) * 0.54)));
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 2px 18px rgba(30, 20, 12, 0.45);
+}
+
+/* ---------- frase de apoio ----------
+   Presa à direita, mas com a esquerda travada em 26% para nunca encostar no
+   título deitado. A largura máxima segura ~28 caracteres por linha, contando
+   o espaçamento largo entre letras. */
+.bhn-apoio {
+  position: absolute;
+  left: 26%;
+  right: var(--margem);
+  bottom: var(--apoio-base);
+  z-index: 2;
+  margin: 0 0 0 auto;
+  max-width: calc(28ch + 28 * 0.12em);
+  pointer-events: none;
+
+  font-family: var(--font-poppins), "Segoe UI", sans-serif;
+  font-weight: 600;
+  /* medida da largura da tela, não da altura do banner: se acompanhasse a
+     altura, encolher o banner encolheria a frase junto e ela sairia dos 15px */
+  font-size: clamp(11px, 1.05vw, 15px);
+  line-height: 1.6;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: right;
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(30, 20, 12, 0.55);
+}
+
+.bhn-brilho {
+  display: block;
+  margin-bottom: 0.5em;
+  font-size: 1.25em;
+  line-height: 1;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* ---------- setas ----------
+   No desktop ficam coladas nas laterais, centradas na altura. No celular a
+   faixa lateral esquerda é do título deitado, então elas descem para junto das
+   bolinhas — é o único jeito de não sobrepor. */
+.bhn-seta {
+  position: absolute;
+  bottom: 2%;
+  left: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  color: #fff;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.bhn-seta--ant { translate: calc(-50% - 4.6rem) 0; }
+.bhn-seta--prox { translate: calc(-50% + 4.6rem) 0; }
+
+.bhn-seta:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+@media (min-width: 768px) {
+  .bhn-seta {
+    top: 50%;
+    bottom: auto;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .bhn-seta--ant { left: 2.2%; translate: 0 -50%; }
+  .bhn-seta--prox { left: auto; right: 2.2%; translate: 0 -50%; }
+}
+
+/* ---------- bolinhas ---------- */
+.bhn-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  z-index: 3;
+  translate: -50% 0;
+  display: flex;
+  gap: 0.1rem;
+}
+
+/* o botão é o alvo de toque (40px); a bolinha visível mora dentro dele */
+.bhn-dot {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 2.5rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.bhn-dot > span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease, scale 0.25s ease;
+}
+
+.bhn-dot:hover > span { background: rgba(255, 255, 255, 0.6); }
+
+.bhn-dot[aria-current="true"] > span {
+  background: #fff;
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+  scale: 1.1;
+}
+
+/* ---------- foco visível ---------- */
+.bhn-area:focus-visible,
+.bhn-seta:focus-visible,
+.bhn-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+  border-radius: 6px;
+}
+
+.bhn-seta:focus-visible,
+.bhn-dot:focus-visible {
+  outline-offset: 2px;
+}
+
+/* ---------- sem movimento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bhn-slide,
+  .bhn-slide[data-ativo="true"] {
+    transition: none;
+  }
+}

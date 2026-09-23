@@ -110,27 +110,28 @@ export interface CupomAplicado {
 // Home editável pelo painel (migration 20260923000005_home_cms)
 // ---------------------------------------------------------------------------
 
-/** Slide do carrossel principal da home. */
+/** Que parte da foto o recorte do banner preserva. */
+export type FocoBanner = "topo" | "centro" | "base";
+
+/**
+ * Slide do carrossel principal da home.
+ *
+ * O banner exibe apenas imagem + título deitado + frase de apoio. Os campos
+ * selo/destaque/legenda/apoio/halo/giro vêm do banner antigo (composição de
+ * polaroids) e continuam na tabela para não perder o histórico, mas nem a loja
+ * nem o painel os usam — ver migration 20260923000006.
+ */
 export interface BannerHome {
   id: string;
-  selo: string;
+  /** Escrito em letras minúsculas, deitado na faixa esquerda. */
   titulo: string;
-  /** Trecho final do título, destacado em itálico. Pode ficar vazio. */
-  destaque: string;
+  /** Frase de apoio do canto inferior direito (sai em caixa alta). */
   subtitulo: string;
-  /** Legenda manuscrita na borda da polaroid. */
-  legenda: string;
-  cta_texto: string;
+  /** Para onde o banner leva quando clicado. */
   cta_link: string;
   imagem: string;
   imagem_alt: string;
-  /** Polaroid menor de apoio. null = slide com uma foto só. */
-  apoio: string | null;
-  apoio_alt: string;
-  /** Cor do halo de fundo — muda a temperatura do slide sem sair da paleta. */
-  halo: string;
-  giro_principal: number;
-  giro_apoio: number;
+  foco: FocoBanner;
   ordem: number;
   ativo: boolean;
 }

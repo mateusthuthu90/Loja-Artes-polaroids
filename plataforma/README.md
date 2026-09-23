@@ -85,12 +85,15 @@ npx wrangler deploy         # publica
    4. `supabase/seed.sql`
    5. `supabase/migrations/20260922000003_corrige_descricao_config.sql`
    6. `supabase/migrations/20260923000005_home_cms.sql`
+   7. `supabase/migrations/20260923000006_banner_full_bleed.sql`
 
    As três primeiras só criam e alteram tabelas, então vêm antes do seed. A
    quinta **corrige uma linha que o seed cria**, por isso roda depois dele — o
    seed usa `on conflict do nothing` e não se corrige sozinho numa segunda
-   passada. A última cria a home editável e semeia as seções de categoria,
-   então precisa das categorias já criadas pelo seed.
+   passada. A sexta cria a home editável e semeia as seções de categoria,
+   então precisa das categorias já criadas pelo seed. A sétima troca o banner
+   antigo (composição de polaroids) pelo banner de foto sangrada e semeia os
+   quatro slides atuais.
 3. **Authentication → Sign In / Providers**: desligue *Allow new users to sign up*.
 4. **Authentication → Users → Add user**: crie o seu usuário (e-mail + senha).
    Copie o *User UID* e rode no SQL Editor:

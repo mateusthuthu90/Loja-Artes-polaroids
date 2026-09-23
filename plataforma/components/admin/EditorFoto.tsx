@@ -13,8 +13,9 @@ const FUNDOS = { branco: "#ffffff", creme: "#faf5ea" } as const;
 export const FORMATOS = {
   /** 1 : 0,95 — galeria e cards de produto */
   produto: { largura: 1600, altura: 1520 },
-  /** 4 : 5 — polaroid do banner da home */
-  banner: { largura: 1280, altura: 1600 },
+  /** 2,6 : 1 — quase a largura do banner do desktop (3,5:1), e ainda dá margem
+      para o corte do celular (4:3). O CSS acerta o resto com object-fit: cover. */
+  banner: { largura: 1920, altura: 738 },
 } as const;
 
 export type FormatoFoto = keyof typeof FORMATOS;

@@ -5,6 +5,7 @@
 import type {
   BannerHome,
   BeneficioHome,
+  FocoBanner,
   FonteSecao,
   FundoSecao,
   LayoutSecao,
@@ -13,13 +14,12 @@ import type {
   TextosHome,
 } from "./types";
 
+// O título sai deitado e ocupa a altura do banner: passando de ~28 caracteres
+// a letra fica pequena demais para ser lida de longe. A frase de apoio quebra
+// em ~28 caracteres por linha, então 180 dá umas quatro linhas confortáveis.
 export const LIMITES_BANNER = {
-  selo: 60,
-  titulo: 120,
-  destaque: 60,
-  subtitulo: 300,
-  legenda: 40,
-  cta_texto: 40,
+  titulo: 28,
+  subtitulo: 180,
   alt: 200,
 } as const;
 
@@ -31,15 +31,12 @@ export const LIMITES_SECAO = {
   produtos: 24,
 } as const;
 
-export const GIRO = { min: -15, max: 15 } as const;
-
-/** Halos prontos: mantêm o banner dentro da paleta da marca. */
-export const HALOS: { nome: string; valor: string }[] = [
-  { nome: "Terracota", valor: "rgba(185, 132, 106, 0.26)" },
-  { nome: "Dourado", valor: "rgba(217, 164, 65, 0.28)" },
-  { nome: "Marrom", valor: "rgba(92, 69, 52, 0.18)" },
-  { nome: "Verde suave", valor: "rgba(124, 152, 123, 0.24)" },
-  { nome: "Rosé", valor: "rgba(200, 138, 142, 0.24)" },
+/** A foto é recortada de formas diferentes no desktop e no celular; isto diz
+    qual pedaço dela precisa sobreviver aos dois recortes. */
+export const FOCOS: { valor: FocoBanner; nome: string; ajuda: string }[] = [
+  { valor: "topo", nome: "Topo", ajuda: "O assunto está na parte de cima da foto." },
+  { valor: "centro", nome: "Centro", ajuda: "O assunto está no meio da foto." },
+  { valor: "base", nome: "Base", ajuda: "O assunto está na parte de baixo da foto." },
 ];
 
 export const FONTES: { valor: FonteSecao; nome: string; ajuda: string }[] = [
@@ -66,20 +63,12 @@ export type ErrosTextos = { geral?: string };
 export function bannerVazio(): BannerForm {
   return {
     id: null,
-    selo: "",
     titulo: "",
-    destaque: "",
     subtitulo: "",
-    legenda: "",
-    cta_texto: "Ver produtos",
     cta_link: "/produtos",
     imagem: "",
     imagem_alt: "",
-    apoio: null,
-    apoio_alt: "",
-    halo: HALOS[0].valor,
-    giro_principal: -2.5,
-    giro_apoio: 7,
+    foco: "centro",
     ativo: true,
   };
 }
@@ -112,10 +101,6 @@ function linkValido(href: string): boolean {
   return /^(\/|#|https?:\/\/)/.test(href);
 }
 
-function giroValido(g: number): boolean {
-  return Number.isFinite(g) && g >= GIRO.min && g <= GIRO.max;
-}
-
 // ---------------------------------------------------------------------------
 // Validação
 // ---------------------------------------------------------------------------
@@ -126,25 +111,16 @@ export function validarBanner(f: BannerForm): ErrosBanner {
   if (!limpar(f.titulo)) e.titulo = "Escreva o título do banner";
   else if (f.titulo.length > LIMITES_BANNER.titulo) e.titulo = `Até ${LIMITES_BANNER.titulo} caracteres`;
 
-  if (f.selo.length > LIMITES_BANNER.selo) e.selo = `Até ${LIMITES_BANNER.selo} caracteres`;
-  if (f.destaque.length > LIMITES_BANNER.destaque) e.destaque = `Até ${LIMITES_BANNER.destaque} caracteres`;
-  if (f.subtitulo.length > LIMITES_BANNER.subtitulo) e.subtitulo = `Até ${LIMITES_BANNER.subtitulo} caracteres`;
-  if (f.legenda.length > LIMITES_BANNER.legenda) e.legenda = `Até ${LIMITES_BANNER.legenda} caracteres`;
-
-  if (!limpar(f.cta_texto)) e.cta_texto = "Escreva o texto do botão";
-  else if (f.cta_texto.length > LIMITES_BANNER.cta_texto) e.cta_texto = `Até ${LIMITES_BANNER.cta_texto} caracteres`;
+  if (!limpar(f.subtitulo)) e.subtitulo = "Escreva a frase de apoio";
+  else if (f.subtitulo.length > LIMITES_BANNER.subtitulo) e.subtitulo = `Até ${LIMITES_BANNER.subtitulo} caracteres`;
 
   if (!linkValido(f.cta_link)) e.cta_link = "Use um endereço do site (ex.: /produtos) ou um link completo";
 
-  if (!f.imagem.trim()) e.imagem = "Envie a foto principal do banner";
+  if (!f.imagem.trim()) e.imagem = "Envie a foto do banner";
   if (!limpar(f.imagem_alt)) e.imagem_alt = "Descreva a foto para quem não enxerga";
   else if (f.imagem_alt.length > LIMITES_BANNER.alt) e.imagem_alt = `Até ${LIMITES_BANNER.alt} caracteres`;
 
-  if (f.apoio && !limpar(f.apoio_alt)) e.apoio_alt = "Descreva também a segunda foto";
-  if (f.apoio_alt.length > LIMITES_BANNER.alt) e.apoio_alt = `Até ${LIMITES_BANNER.alt} caracteres`;
-
-  if (!giroValido(f.giro_principal)) e.giro_principal = `A inclinação vai de ${GIRO.min} a ${GIRO.max} graus`;
-  if (!giroValido(f.giro_apoio)) e.giro_apoio = `A inclinação vai de ${GIRO.min} a ${GIRO.max} graus`;
+  if (!FOCOS.some((o) => o.valor === f.foco)) e.foco = "Escolha onde está o assunto da foto";
 
   return e;
 }
@@ -194,22 +170,15 @@ export function validarTextos(t: TextosHome): ErrosTextos {
 // Formulário → banco
 // ---------------------------------------------------------------------------
 
+/** As colunas do banner antigo ficam de fora: o banco tem default para todas. */
 export function bannerParaBanco(f: BannerForm) {
   return {
-    selo: limpar(f.selo),
-    titulo: limpar(f.titulo),
-    destaque: limpar(f.destaque),
+    titulo: limpar(f.titulo).toLowerCase(),
     subtitulo: limpar(f.subtitulo),
-    legenda: limpar(f.legenda),
-    cta_texto: limpar(f.cta_texto),
     cta_link: f.cta_link.trim(),
     imagem: f.imagem.trim(),
     imagem_alt: limpar(f.imagem_alt),
-    apoio: f.apoio?.trim() || null,
-    apoio_alt: f.apoio?.trim() ? limpar(f.apoio_alt) : "",
-    halo: f.halo.trim(),
-    giro_principal: Number(f.giro_principal),
-    giro_apoio: Number(f.giro_apoio),
+    foco: f.foco,
     ativo: f.ativo,
   };
 }

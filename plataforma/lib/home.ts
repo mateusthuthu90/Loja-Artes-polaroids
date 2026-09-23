@@ -29,21 +29,12 @@ function clientePublico() {
  */
 const BANNER_RESERVA: BannerHome = {
   id: "reserva",
-  selo: "Lembranças personalizadas",
-  titulo: "Suas memórias, reveladas",
-  destaque: "com carinho",
-  subtitulo:
-    "Polaroids, quadros e porta-retratos feitos à mão com as fotos que você não quer esquecer.",
-  legenda: "a gente",
-  cta_texto: "Escolher meus produtos",
+  titulo: "fotos polaroid",
+  subtitulo: "Transforme suas memórias em polaroids personalizadas, impressas com carinho.",
   cta_link: "/produtos",
-  imagem: "/images/banners/memorias.jpg",
-  imagem_alt: "Porta-retrato de madeira com foto de casal, rodeado por polaroids abertas em leque",
-  apoio: "/images/banners/memorias-apoio.jpg",
-  apoio_alt: "Capinha de celular com uma polaroid do casal aplicada",
-  halo: "rgba(185, 132, 106, 0.26)",
-  giro_principal: -2.5,
-  giro_apoio: 7,
+  imagem: "/images/banners/polaroids.jpg",
+  imagem_alt: "Mão segurando um porta-retrato de coraçõezinhos diante de polaroids abertas em leque",
+  foco: "centro",
   ordem: 1,
   ativo: true,
 };
@@ -53,13 +44,9 @@ function bannerExibivel(b: BannerHome): boolean {
   return typeof b.imagem === "string" && b.imagem.trim().length > 0 && b.titulo.trim().length > 0;
 }
 
+/** Banco antigo (antes da migration do foco) responde sem a coluna. */
 function normalizarBanner(b: BannerHome): BannerHome {
-  return {
-    ...b,
-    giro_principal: Number(b.giro_principal),
-    giro_apoio: Number(b.giro_apoio),
-    apoio: b.apoio?.trim() ? b.apoio : null,
-  };
+  return { ...b, foco: b.foco ?? "centro" };
 }
 
 export const listarBanners = unstable_cache(
