@@ -128,8 +128,8 @@ export const TEXTOS_HOME_PADRAO: TextosHome = {
     subtitulo: `Do clique de "comprar" até a lembrança na sua mão, sem complicação.`,
     passos: [
       { titulo: "Escolha seus produtos", texto: "Navegue pela coleção e monte seu pedido do jeitinho que quiser." },
-      { titulo: "Envie suas fotos", texto: "Ao finalizar o pedido, você sobe as fotos direto aqui no site. Sem bagunça no WhatsApp." },
       { titulo: "Pague com Pix", texto: "O pagamento é confirmado na hora e o seu pedido já entra na nossa fila de produção." },
+      { titulo: "Mande suas fotos", texto: "Assim que o pagamento é confirmado, a gente chama você no WhatsApp para combinar o envio das fotos." },
       { titulo: "Receba suas lembranças", texto: "Produzimos tudo à mão e enviamos com carinho, ou você retira com a gente." },
     ],
   },
