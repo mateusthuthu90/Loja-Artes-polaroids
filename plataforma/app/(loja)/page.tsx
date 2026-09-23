@@ -27,8 +27,10 @@ export default async function Home() {
     <>
       <BannerHero slides={banners} />
 
+      {/* O banner vai até a borda, então a folga de cima desta faixa tem que vir
+          dela mesma: sem ela os botões de categoria encostam na foto. */}
       {textos.categorias.ativo && categorias.length > 1 && (
-        <section className="mx-auto max-w-6xl px-4 pb-4">
+        <section className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
           <div className="flex flex-wrap justify-center gap-2">
             {categorias.map((c) => (
               <Link
