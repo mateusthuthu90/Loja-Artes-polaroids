@@ -1,20 +1,11 @@
 "use client";
 
 // Estado do checkout persistido no localStorage: se o celular recarregar a
-// página no meio (muito comum ao abrir a galeria de fotos), nada se perde —
-// nem os dados digitados, nem as fotos já enviadas.
+// página no meio, nada se perde do que o cliente já digitou.
 import { useCallback, useEffect, useState } from "react";
 import type { DadosCliente, Endereco, TipoEntrega } from "@/lib/validacao";
 
 const CHAVE = "ap_checkout_v1";
-
-export interface FotoEnviada {
-  caminho: string; // pendentes/<sessão>/<uuid>.jpg — gerado pelo servidor
-  nome: string; // nome original, só para o cliente reconhecer
-  miniatura: string | null;
-  largura: number | null;
-  altura: number | null;
-}
 
 export interface EstadoCheckout {
   sessao: string;
@@ -22,8 +13,6 @@ export interface EstadoCheckout {
   tipoEntrega: TipoEntrega;
   endereco: Endereco;
   observacoes: string;
-  /** fotos por item do carrinho (chave do item) */
-  fotos: Record<string, FotoEnviada[]>;
 }
 
 function novoEstado(): EstadoCheckout {
@@ -33,7 +22,6 @@ function novoEstado(): EstadoCheckout {
     tipoEntrega: "envio",
     endereco: { cep: "", rua: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "" },
     observacoes: "",
-    fotos: {},
   };
 }
 
@@ -42,12 +30,14 @@ function ler(): EstadoCheckout {
     const salvo = JSON.parse(localStorage.getItem(CHAVE) ?? "null");
     if (salvo && typeof salvo.sessao === "string") {
       const base = novoEstado();
+      // Campo a campo: estados salvos antes da remoção do upload carregam um
+      // "fotos" com miniaturas em base64 que não serve mais para nada.
       return {
-        ...base,
-        ...salvo,
+        sessao: salvo.sessao,
         dados: { ...base.dados, ...salvo.dados },
+        tipoEntrega: salvo.tipoEntrega ?? base.tipoEntrega,
         endereco: { ...base.endereco, ...salvo.endereco },
-        fotos: salvo.fotos && typeof salvo.fotos === "object" ? salvo.fotos : {},
+        observacoes: typeof salvo.observacoes === "string" ? salvo.observacoes : "",
       };
     }
   } catch {
@@ -71,18 +61,7 @@ export function useEstadoCheckout() {
       try {
         localStorage.setItem(CHAVE, JSON.stringify(novo));
       } catch {
-        // storage cheio (muitas miniaturas): segue sem persistir as miniaturas
-        try {
-          const semMiniaturas = {
-            ...novo,
-            fotos: Object.fromEntries(
-              Object.entries(novo.fotos).map(([k, fs]) => [k, fs.map((f) => ({ ...f, miniatura: null }))]),
-            ),
-          };
-          localStorage.setItem(CHAVE, JSON.stringify(semMiniaturas));
-        } catch {
-          // sem storage: funciona só nesta aba
-        }
+        // sem storage (modo anônimo / cota cheia): funciona só nesta aba
       }
       return novo;
     });

@@ -62,6 +62,10 @@ export default async function PaginaCartao({ params }: PageProps<"/checkout/cart
               {parcelas > 1 ? ` em ${parcelas}x` : " à vista"}. Já vamos começar a produção.
             </p>
             <p className="mt-2 text-sm text-texto-suave">
+              <strong className="text-texto">Agora é só mandar suas fotos pelo WhatsApp.</strong> A
+              gente já vai chamar você por lá para combinar o envio.
+            </p>
+            <p className="mt-2 text-sm text-texto-suave">
               Produção em até {config.prazo_producao.dias_uteis} dias úteis. A gente avisa pelo WhatsApp
               quando estiver pronto.
             </p>

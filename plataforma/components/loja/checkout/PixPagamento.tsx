@@ -65,7 +65,9 @@ export function PixPagamento({
           pronto em até {prazoDias} dias úteis.
         </p>
         <p className="mt-2 text-sm text-texto-suave">
-          Guarde este código: é por ele que a gente se encontra no WhatsApp.
+          <strong className="text-texto">Agora é só mandar suas fotos pelo WhatsApp.</strong> A
+          gente já vai chamar você por lá para combinar o envio. Guarde este código: é por ele que
+          a gente se encontra.
         </p>
         <BotaoWhatsApp whatsapp={whatsapp} codigo={codigo} />
       </Cartao>

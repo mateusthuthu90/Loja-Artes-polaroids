@@ -107,14 +107,5 @@ export function mascararCpf(v: string): string {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
-// ---------------------------------------------------------------------------
-// Fotos do cliente (regra 4.2)
-// ---------------------------------------------------------------------------
-export const FOTO_TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
-export const FOTO_TAMANHO_MAXIMO = 15 * 1024 * 1024; // 15 MB (limite do bucket)
-/** Abaixo disso a foto pode sair pixelada — avisamos, mas não bloqueamos. */
-export const FOTO_LADO_MINIMO_RECOMENDADO = 800;
-
-/** Caminho de upload gerado pelo servidor: pendentes/<sessão>/<uuid>.<ext> */
-export const REGEX_CAMINHO_FOTO =
-  /^pendentes\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpg|png|webp|heic)$/;
+// As fotos do cliente não passam mais pelo site: são combinadas pelo WhatsApp
+// depois da confirmação do pagamento. As constantes de upload saíram junto.

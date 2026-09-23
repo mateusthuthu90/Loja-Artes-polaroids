@@ -24,13 +24,12 @@ import { CampoCupom, useCupom } from "../cupom";
 import { useLinhasCarrinho, type LinhaCarrinho } from "../linhas-carrinho";
 import { botaoContorno, botaoPrimario } from "../ui";
 import { CartaoPagamento, type DadosCartao } from "./CartaoPagamento";
-import { useEstadoCheckout, type EstadoCheckout } from "./estado";
-import { UploadFotosItem } from "./UploadFotosItem";
+import { useEstadoCheckout } from "./estado";
 
-type Etapa = "dados" | "entrega" | "fotos" | "revisao";
+type Etapa = "dados" | "entrega" | "revisao";
 /** Teto de parcelas exibido ao cliente. Combina com MAX_PARCELAS da rota. */
 const MAX_PARCELAS_UI = 12;
-const TITULOS: Record<Etapa, string> = { dados: "Seus dados", entrega: "Entrega", fotos: "Fotos", revisao: "Revisão" };
+const TITULOS: Record<Etapa, string> = { dados: "Seus dados", entrega: "Entrega", revisao: "Revisão" };
 
 export function Checkout({ produtos, config }: { produtos: Produto[]; config: ConfigLoja }) {
   const { linhas, subtotal, carregado, limpar } = useLinhasCarrinho(produtos);
@@ -59,19 +58,17 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
     );
   }
 
-  const linhasComFotos = linhas.filter((l) => l.fotosMax > 0);
-  const etapas: Etapa[] = ["dados", "entrega", ...(linhasComFotos.length ? (["fotos"] as const) : []), "revisao"];
-  // se o carrinho mudou e a etapa "fotos" deixou de existir, volta para uma etapa válida
+  // As fotos do cliente são pedidas pelo WhatsApp depois do pagamento confirmado.
+  const pedeFotos = linhas.some((l) => l.fotosMax > 0);
+  const etapas: Etapa[] = ["dados", "entrega", "revisao"];
   const etapa = etapas.includes(etapaEscolhida) ? etapaEscolhida : "revisao";
   const indice = etapas.indexOf(etapa);
 
   const errosDados = validarDados(estado.dados);
   const errosEndereco: Erros<Endereco> = estado.tipoEntrega === "envio" ? validarEndereco(estado.endereco) : {};
-  const fotosPendentes = linhasComFotos.filter((l) => !fotosOk(l, estado));
   const valido: Record<Etapa, boolean> = {
     dados: semErros(errosDados),
     entrega: semErros(errosEndereco),
-    fotos: fotosPendentes.length === 0,
     revisao: true,
   };
 
@@ -124,10 +121,6 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
             produtoId: l.produto.id,
             opcoes: l.item.opcoes,
             quantidade: l.item.quantidade,
-            fotos: (estado.fotos[l.item.chave] ?? []).map((f) => ({
-              caminho: f.caminho,
-              nome: f.nome,
-            })),
           })),
         }),
       });
@@ -284,43 +277,6 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
           </Cartao>
         )}
 
-        {etapa === "fotos" && (
-          <div className="space-y-4">
-            <div className="rounded-card bg-dourado-claro/60 p-4 text-sm">
-              <p className="flex items-center gap-2 font-semibold">
-                <Icone nome="camera" className="h-5 w-5 text-marrom" />
-                Hora de enviar suas fotos!
-              </p>
-              <p className="mt-1 text-texto-suave">
-                Escolha as fotos de cada produto. Elas ficam guardadas com segurança e só são usadas para produzir o seu pedido.
-              </p>
-            </div>
-            {linhasComFotos.map((l) => (
-              <UploadFotosItem
-                key={l.item.chave}
-                linha={l}
-                sessao={estado.sessao}
-                fotos={estado.fotos[l.item.chave] ?? []}
-                onAdicionar={(foto) =>
-                  atualizar((s) => ({
-                    ...s,
-                    fotos: { ...s.fotos, [l.item.chave]: [...(s.fotos[l.item.chave] ?? []), foto] },
-                  }))
-                }
-                onRemover={(caminho) =>
-                  atualizar((s) => ({
-                    ...s,
-                    fotos: { ...s.fotos, [l.item.chave]: (s.fotos[l.item.chave] ?? []).filter((f) => f.caminho !== caminho) },
-                  }))
-                }
-              />
-            ))}
-            {mostrarErros && fotosPendentes.length > 0 && (
-              <p className="text-sm text-perigo">Complete as fotos de: {fotosPendentes.map((l) => l.produto.nome).join(", ")}.</p>
-            )}
-          </div>
-        )}
-
         {etapa === "revisao" && (
           <Cartao titulo="Confira seu pedido">
             <Bloco titulo="Contato" onEditar={() => irPara("dados")}>
@@ -345,17 +301,15 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
               )}
               {estado.observacoes && <p className="mt-1 italic">&ldquo;{estado.observacoes}&rdquo;</p>}
             </Bloco>
-            {linhasComFotos.length > 0 && (
-              <Bloco titulo="Fotos" onEditar={() => irPara("fotos")}>
-                {linhasComFotos.map((l) => {
-                  const n = (estado.fotos[l.item.chave] ?? []).length;
-                  return (
-                    <p key={l.item.chave}>
-                      <Icone nome="confirmado" className="mr-1 inline h-3.5 w-3.5 text-sucesso" />{l.produto.nome}: {n} {n === 1 ? "foto" : "fotos"}
-                    </p>
-                  );
-                })}
-              </Bloco>
+            {pedeFotos && (
+              <div className="mt-4 flex gap-3 rounded-card bg-dourado-claro/60 p-4 text-sm">
+                <Icone nome="camera" className="mt-0.5 h-5 w-5 shrink-0 text-marrom" />
+                <p>
+                  <strong>Suas fotos são pedidas pelo WhatsApp.</strong> Assim que o pagamento for
+                  confirmado, a gente chama você no WhatsApp para combinar o envio das fotos do
+                  seu pedido.
+                </p>
+              </div>
             )}
             <p className="mt-4 text-xs text-texto-suave">
               Produtos personalizados são feitos sob medida: troca apenas em caso de defeito de produção.
@@ -439,11 +393,6 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
       />
     </div>
   );
-}
-
-function fotosOk(l: LinhaCarrinho, estado: EstadoCheckout): boolean {
-  const n = (estado.fotos[l.item.chave] ?? []).length;
-  return n >= l.fotosMin && n <= l.fotosMax;
 }
 
 // ---------------------------------------------------------------------------

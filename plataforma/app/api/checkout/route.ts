@@ -9,9 +9,12 @@
 // Ordem das operações (importa):
 //  1. valida tudo        → erro aqui não deixa rastro
 //  2. grava o pedido     → já com status aguardando_pagamento
-//  3. move as fotos      → agora existem pedido_itens para amarrá-las
-//  4. cria o Pix no MP   → se falhar, o pedido é cancelado e nada fica órfão
-//  5. consome o cupom    → só depois que a cobrança existe
+//  3. cria o Pix no MP   → se falhar, o pedido é cancelado e nada fica órfão
+//  4. consome o cupom    → só depois que a cobrança existe
+//
+// As fotos do cliente não passam mais pelo site: depois do pagamento confirmado,
+// elas são combinadas pelo WhatsApp. pedido_itens.fotos_exigidas continua sendo
+// gravado — é por ele que o painel sabe quantas fotos pedir.
 //
 // O contrário (Pix antes do pedido) deixaria uma cobrança paga sem pedido
 // nenhum no banco — o pior resultado possível.
@@ -39,7 +42,6 @@ import { ipDaRequisicao, permitir } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Produto, Promocao } from "@/lib/types";
 import {
-  REGEX_CAMINHO_FOTO,
   semErros,
   somenteDigitos,
   validarDados,
@@ -51,7 +53,6 @@ import {
 const MAX_PEDIDOS_POR_HORA_POR_IP = 10;
 const MAX_ITENS = 30;
 const REGEX_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const BUCKET = "fotos-clientes";
 /** Teto de parcelas. Acima disso o juro fica alto demais e a recusa dispara. */
 const MAX_PARCELAS = 12;
 /** Token de cartao do Mercado Pago: hexadecimal, gerado no navegador. */
@@ -61,7 +62,6 @@ interface ItemRecebido {
   produtoId: string;
   opcoes: Record<string, string>;
   quantidade: number;
-  fotos: { caminho: string; nome?: string }[];
 }
 
 export async function POST(request: Request) {
@@ -179,7 +179,6 @@ export async function POST(request: Request) {
     quantidade: number;
     unitario: number;
     fotosExigidas: number;
-    fotos: { caminho: string; nome?: string }[];
   }[] = [];
 
   for (const recebido of itensRecebidos) {
@@ -200,18 +199,9 @@ export async function POST(request: Request) {
       throw e;
     }
 
-    const { min, max } = fotosPorUnidade(produto, opcoes);
-    const fotos = Array.isArray(recebido.fotos) ? recebido.fotos : [];
-    for (const f of fotos) {
-      const caminho = String(f?.caminho ?? "");
-      // a foto tem de pertencer a ESTA sessão: ninguém anexa arquivo de terceiro
-      if (!REGEX_CAMINHO_FOTO.test(caminho) || !caminho.startsWith(`pendentes/${sessao}/`)) {
-        return erro("Uma das fotos enviadas é inválida. Reenvie as fotos.", 400);
-      }
-    }
-    if (fotos.length < min * quantidade || fotos.length > max * quantidade) {
-      return erro(`Envie as fotos de "${produto.nome}" antes de finalizar`, 400);
-    }
+    // Quantas fotos este item precisa. O cliente não envia nada pelo site:
+    // o número fica gravado no pedido para a gente pedir pelo WhatsApp depois.
+    const { max } = fotosPorUnidade(produto, opcoes);
 
     itens.push({
       produto,
@@ -219,7 +209,6 @@ export async function POST(request: Request) {
       quantidade,
       unitario: precoUnitario(produto, opcoes),
       fotosExigidas: max * quantidade,
-      fotos,
     });
   }
 
@@ -276,7 +265,7 @@ export async function POST(request: Request) {
     return erro("Não foi possível abrir seu pedido. Tente novamente.", 503);
   }
 
-  const { data: itensGravados, error: erroItens } = await supabase
+  const { error: erroItens } = await supabase
     .from("pedido_itens")
     .insert(
       itens.map((i) => ({
@@ -288,35 +277,12 @@ export async function POST(request: Request) {
         preco_unitario: i.unitario,
         fotos_exigidas: i.fotosExigidas,
       })),
-    )
-    .select("id");
+    );
 
-  if (erroItens || !itensGravados || itensGravados.length !== itens.length) {
-    console.error("[checkout] erro ao gravar itens:", erroItens?.message);
+  if (erroItens) {
+    console.error("[checkout] erro ao gravar itens:", erroItens.message);
     await desfazer(supabase, pedido.id, "falha ao gravar os itens");
     return erro("Não foi possível abrir seu pedido. Tente novamente.", 503);
-  }
-
-  // -------------------------------------------------------- move as fotos
-  // Sai de pendentes/<sessão>/ para pedidos/<código>/: a rotina de limpeza
-  // apaga o que ficou em pendentes sem nunca virar pedido.
-  for (const [indice, item] of itens.entries()) {
-    const pedidoItemId = itensGravados[indice].id;
-    for (const foto of item.fotos) {
-      const destino = `pedidos/${codigo}/${foto.caminho.split("/").pop()}`;
-      const { error: erroMover } = await supabase.storage.from(BUCKET).move(foto.caminho, destino);
-      if (erroMover) {
-        // A foto pode já ter sido movida numa tentativa anterior: seguimos e
-        // deixamos o registro apontando para o destino final.
-        console.error("[checkout] falha ao mover foto:", foto.caminho, erroMover.message);
-      }
-      const { error: erroFoto } = await supabase.from("pedido_fotos").insert({
-        pedido_item_id: pedidoItemId,
-        storage_path: destino,
-        nome_original: foto.nome?.slice(0, 200) ?? null,
-      });
-      if (erroFoto) console.error("[checkout] falha ao registrar foto:", erroFoto.message);
-    }
   }
 
   // ------------------------------------------------------------- cobra

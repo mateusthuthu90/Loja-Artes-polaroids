@@ -142,13 +142,14 @@ export function CompraProduto({ produto }: { produto: Produto }) {
         <div className="mb-5 flex gap-3 rounded-card border border-dourado-claro bg-dourado-claro/50 p-4 text-sm">
           <Icone nome="camera" className="mt-0.5 h-5 w-5 shrink-0 text-marrom" />
           <p>
-            Você vai enviar{" "}
+            Este produto leva{" "}
             <strong>
               {fotos.min === fotos.max
                 ? `${fotos.min * quantidade} ${fotos.min * quantidade === 1 ? "foto" : "fotos"}`
                 : `de ${fotos.min * quantidade} a ${fotos.max * quantidade} fotos`}
-            </strong>{" "}
-            direto aqui no site, na hora de finalizar o pedido.
+            </strong>
+            . Depois que o pagamento for confirmado, a gente chama você no WhatsApp para combinar
+            o envio.
           </p>
         </div>
       )}
