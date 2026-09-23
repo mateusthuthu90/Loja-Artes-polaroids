@@ -78,6 +78,12 @@ export function MenuAdmin() {
         <Link
           key={i.href}
           href={i.href}
+          // Sem prefetch: este menu fica visível em toda tela do painel, então o
+          // Next tentaria pré-carregar as 7 páginas de uma vez. Cada uma delas é
+          // dinâmica e faz as próprias consultas, o que vira uma rajada de
+          // renderizações a cada carregamento — no plano Free do Workers
+          // (10ms de CPU por requisição) isso derruba o painel.
+          prefetch={false}
           aria-current={ativo(i.href) ? "page" : undefined}
           className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
             ativo(i.href) ? "bg-marrom text-creme-claro" : "text-texto-suave hover:bg-terracota-claro hover:text-marrom"

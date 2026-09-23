@@ -67,6 +67,7 @@ function Filtro({ href, ativo, children }: { href: string; ativo: boolean; child
   return (
     <Link
       href={href}
+      prefetch={false}
       className={`shrink-0 rounded-full border-[1.5px] px-3 py-1.5 text-xs font-semibold ${
         ativo ? "border-terracota bg-terracota-claro text-marrom" : "border-borda bg-cartao hover:border-terracota"
       }`}

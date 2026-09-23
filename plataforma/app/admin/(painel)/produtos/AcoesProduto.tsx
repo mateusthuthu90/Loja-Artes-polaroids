@@ -37,7 +37,7 @@ export function AcoesProduto({ id, nome, status }: { id: string; nome: string; s
   const botao = "rounded-lg px-2.5 py-1.5 text-xs font-semibold transition disabled:opacity-40";
   return (
     <div className={`flex flex-wrap gap-1 ${ocupado ? "pointer-events-none opacity-50" : ""}`}>
-      <Link href={`/admin/produtos/${id}`} className={`${botao} bg-marrom text-creme-claro hover:bg-texto`}>Editar</Link>
+      <Link href={`/admin/produtos/${id}`} prefetch={false} className={`${botao} bg-marrom text-creme-claro hover:bg-texto`}>Editar</Link>
       {status === "publicado" ? (
         <button type="button" onClick={despublicar} className={`${botao} border border-borda hover:border-terracota`}>Despublicar</button>
       ) : (

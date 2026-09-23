@@ -53,11 +53,11 @@ export default async function PaginaEstoque() {
             const baixo = p.estoque! <= p.estoque_minimo;
             return (
               <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-card border border-borda bg-cartao p-3">
-                <Link href={`/admin/produtos/${p.id}`} className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-terracota-claro">
+                <Link href={`/admin/produtos/${p.id}`} prefetch={false} className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-terracota-claro">
                   {p.imagens[0] && <Image src={p.imagens[0]} alt={p.nome} fill sizes="48px" className="object-cover" />}
                 </Link>
                 <div className="min-w-0 flex-1">
-                  <Link href={`/admin/produtos/${p.id}`} className="font-semibold hover:text-marrom">{p.nome}</Link>
+                  <Link href={`/admin/produtos/${p.id}`} prefetch={false} className="font-semibold hover:text-marrom">{p.nome}</Link>
                   <p className="flex items-center gap-1 text-xs text-texto-suave">
                     {p.estoque === 0 ? (
                       <span className="font-bold text-perigo">Esgotado</span>
@@ -83,7 +83,7 @@ export default async function PaginaEstoque() {
       <ul className="space-y-2">
         {sobDemanda.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-borda bg-cartao p-3">
-            <Link href={`/admin/produtos/${p.id}`} className="font-semibold hover:text-marrom">{p.nome}</Link>
+            <Link href={`/admin/produtos/${p.id}`} prefetch={false} className="font-semibold hover:text-marrom">{p.nome}</Link>
             <EstoqueRapido produtoId={p.id} estoque={null} estoqueMinimo={p.estoque_minimo} />
           </li>
         ))}

@@ -70,7 +70,7 @@ export default async function PaginaProdutos({ searchParams }: PageProps<"/admin
         <ul className="space-y-2">
           {lista.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-card border border-borda bg-cartao p-3">
-              <Link href={`/admin/produtos/${p.id}`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-terracota-claro">
+              <Link href={`/admin/produtos/${p.id}`} prefetch={false} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-terracota-claro">
                 {p.imagens[0] ? (
                   <Image src={p.imagens[0]} alt={p.nome} fill sizes="64px" className="object-cover" />
                 ) : (
@@ -79,7 +79,7 @@ export default async function PaginaProdutos({ searchParams }: PageProps<"/admin
               </Link>
               <div className="min-w-0 flex-1 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/admin/produtos/${p.id}`} className="font-semibold hover:text-marrom">{p.nome}</Link>
+                  <Link href={`/admin/produtos/${p.id}`} prefetch={false} className="font-semibold hover:text-marrom">{p.nome}</Link>
                   <span className={`rounded-full px-2 py-0.5 text-[0.7rem] font-bold ${ROTULO[p.status].cor}`}>{ROTULO[p.status].texto}</span>
                   {p.destaque && (
                     <span title="Destaque na home" className="text-dourado">
