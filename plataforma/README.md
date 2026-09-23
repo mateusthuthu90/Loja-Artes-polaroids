@@ -29,8 +29,12 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 
 1. `git clone https://github.com/mateusthuthu90/Loja-Artes-polaroids.git`
 2. `cd Loja-Artes-polaroids/plataforma` e `npm install`
-3. Copie `.env.example` para `.env.local` e preencha as 3 chaves do Supabase
-   (Project Settings → API). Sem elas a loja abre vazia.
+3. Copie `.env.example` para `.env.local` e preencha o que o arquivo pede:
+   as 3 chaves do Supabase (Project Settings → API) e o
+   `MERCADOPAGO_ACCESS_TOKEN` (mercadopago.com.br/developers → credenciais de
+   TESTE). Sem as do Supabase a loja abre vazia; sem a do Mercado Pago o
+   checkout Pix falha ao gerar o QR Code. O `MERCADOPAGO_WEBHOOK_SECRET` só
+   passa a ser necessário no Prompt 7.
 4. `npm run dev` → http://localhost:3000
 
 Para publicar a partir dessa máquina, também é preciso `npx wrangler login`
@@ -50,8 +54,12 @@ npx wrangler deploy         # publica
   imagens e dos arquivos estáticos) e `open-next.config.ts`.
 - `npm run cf:preview` roda a versão Cloudflare localmente. Para isso, crie um
   arquivo `.dev.vars` com a linha `SUPABASE_SERVICE_ROLE_KEY=...` (fica fora do git).
-- A chave secreta em produção **não** vai no código: já está guardada na
-  Cloudflare. Para trocá-la: `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`.
+- A chave secreta em produção fica guardada na Cloudflare, e é ela que vale em
+  runtime: as variáveis do Worker sobrescrevem qualquer valor embutido no build.
+  Só que o `npm run cf:build` copia o `.env.local` para dentro do bundle como
+  reserva — então a chave viaja junto no artefato publicado. Para trocá-la:
+  `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY` e publique de novo, para o
+  bundle deixar de carregar a cópia antiga.
 - `.env.production` guarda só o endereço público do site (sem segredo). Quando o
   domínio próprio entrar, troque essa linha e publique de novo.
 
