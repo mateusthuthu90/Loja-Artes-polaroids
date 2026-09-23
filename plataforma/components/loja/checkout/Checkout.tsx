@@ -23,10 +23,13 @@ import {
 import { CampoCupom, useCupom } from "../cupom";
 import { useLinhasCarrinho, type LinhaCarrinho } from "../linhas-carrinho";
 import { botaoContorno, botaoPrimario } from "../ui";
+import { CartaoPagamento, type DadosCartao } from "./CartaoPagamento";
 import { useEstadoCheckout, type EstadoCheckout } from "./estado";
 import { UploadFotosItem } from "./UploadFotosItem";
 
 type Etapa = "dados" | "entrega" | "fotos" | "revisao";
+/** Teto de parcelas exibido ao cliente. Combina com MAX_PARCELAS da rota. */
+const MAX_PARCELAS_UI = 12;
 const TITULOS: Record<Etapa, string> = { dados: "Seus dados", entrega: "Entrega", fotos: "Fotos", revisao: "Revisão" };
 
 export function Checkout({ produtos, config }: { produtos: Produto[]; config: ConfigLoja }) {
@@ -38,6 +41,7 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
   const [mostrarErros, setMostrarErros] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
+  const [forma, setForma] = useState<"pix" | "cartao">("pix");
 
   if (!carregado || !estado) {
     return <p className="py-20 text-center text-texto-suave">Carregando…</p>;
@@ -91,7 +95,7 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
    * Só limpamos carrinho e checkout DEPOIS do pedido criado — se der erro no
    * caminho, o cliente não perde o que já preencheu.
    */
-  async function finalizar() {
+  async function finalizar(cartao?: DadosCartao) {
     if (enviando || !estado) return;
     setEnviando(true);
     setErroEnvio(null);
@@ -107,6 +111,15 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
           endereco: estado.endereco,
           observacoes: estado.observacoes,
           cupom: cupom.aplicado?.codigo ?? null,
+          pagamento: cartao
+            ? {
+                forma: "cartao",
+                token: cartao.token,
+                parcelas: cartao.parcelas,
+                metodoId: cartao.metodoId,
+                emissorId: cartao.emissorId,
+              }
+            : { forma: "pix" },
           itens: linhas.map((l) => ({
             produtoId: l.produto.id,
             opcoes: l.item.opcoes,
@@ -120,21 +133,30 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
       });
 
       const corpo = (await resposta.json().catch(() => null)) as
-        | { codigo?: string; erro?: string }
+        | { codigo?: string; erro?: string; forma?: string }
         | null;
 
       if (!resposta.ok || !corpo?.codigo) {
-        setErroEnvio(corpo?.erro ?? "Não foi possível finalizar. Tente novamente.");
+        const mensagem = corpo?.erro ?? "Não foi possível finalizar. Tente novamente.";
+        setErroEnvio(mensagem);
         setEnviando(false);
+        // O formulário do cartão espera uma promessa rejeitada para voltar a
+        // aceitar tentativa: sem isso ele fica travado depois de uma recusa.
+        if (cartao) throw new Error(mensagem);
         return;
       }
 
       limpar();
       reiniciar();
-      router.push(`/checkout/pix/${corpo.codigo}`);
-    } catch {
+      router.push(
+        corpo.forma === "cartao" ? `/checkout/cartao/${corpo.codigo}` : `/checkout/pix/${corpo.codigo}`,
+      );
+    } catch (e) {
+      // Erro já tratado acima (recusa do cartão) sobe direto para o formulário.
+      if (cartao && e instanceof Error && erroEnvio) throw e;
       setErroEnvio("Sem conexão com a loja. Verifique a internet e tente de novo.");
       setEnviando(false);
+      if (cartao) throw e;
     }
   }
 
@@ -343,6 +365,37 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
           </Cartao>
         )}
 
+        {etapa === "revisao" && (
+          <Cartao titulo="Como você quer pagar?">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <OpcaoPagamento
+                ativa={forma === "pix"}
+                titulo="Pix"
+                descricao="Aprovação na hora"
+                onClick={() => {
+                  setForma("pix");
+                  setErroEnvio(null);
+                }}
+              />
+              <OpcaoPagamento
+                ativa={forma === "cartao"}
+                titulo="Cartão de crédito"
+                descricao={`Em até ${MAX_PARCELAS_UI}x`}
+                onClick={() => {
+                  setForma("cartao");
+                  setErroEnvio(null);
+                }}
+              />
+            </div>
+
+            {forma === "cartao" && (
+              <div className="mt-5">
+                <CartaoPagamento total={total} onPagar={finalizar} />
+              </div>
+            )}
+          </Cartao>
+        )}
+
         {/* Navegação */}
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
           {indice > 0 ? (
@@ -356,11 +409,11 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
             <button type="button" onClick={avancar} className={botaoPrimario}>
               Continuar →
             </button>
-          ) : (
+          ) : forma === "pix" ? (
             <div className="text-center sm:text-right">
               <button
                 type="button"
-                onClick={finalizar}
+                onClick={() => finalizar()}
                 disabled={enviando}
                 className={`${botaoPrimario} w-full disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto`}
               >
@@ -368,6 +421,10 @@ export function Checkout({ produtos, config }: { produtos: Produto[]; config: Co
               </button>
               {erroEnvio && <p className="mt-2 text-sm text-perigo sm:text-right">{erroEnvio}</p>}
             </div>
+          ) : (
+            // No cartão quem envia é o formulário do Mercado Pago, que tem o
+            // próprio botão. Aqui sobra só o espaço do erro.
+            erroEnvio && <p className="text-sm text-perigo sm:text-right">{erroEnvio}</p>
           )}
         </div>
       </div>
@@ -496,6 +553,35 @@ function OpcaoEntrega({ ativa, onClick, icone, titulo, texto }: { ativa: boolean
   );
 }
 
+
+function OpcaoPagamento({
+  ativa,
+  titulo,
+  descricao,
+  onClick,
+}: {
+  ativa: boolean;
+  titulo: string;
+  descricao: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={ativa}
+      className={`rounded-grande border p-4 text-left transition ${
+        ativa ? "border-terracota bg-terracota/5" : "border-borda hover:border-texto-suave"
+      }`}
+    >
+      <span className="flex items-center gap-2 font-bold">
+        {ativa && <Icone nome="confirmado" className="h-4 w-4 text-terracota" />}
+        {titulo}
+      </span>
+      <span className="mt-0.5 block text-sm text-texto-suave">{descricao}</span>
+    </button>
+  );
+}
 function Bloco({ titulo, onEditar, children }: { titulo: string; onEditar: () => void; children: ReactNode }) {
   return (
     <div className="border-b border-borda py-3 text-sm last:border-0">

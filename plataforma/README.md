@@ -17,10 +17,11 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 | Fase 1 · Prompt 3 | Vitrine: home, /produtos, /categoria/[slug], /produto/[slug] (galeria, opções, preço ao vivo, Open Graph) | ✅ |
 | Fase 1 · Prompt 4 | Carrinho (Context + localStorage, sincroniza abas, recalcula preço pelo catálogo) | ✅ |
 | Fase 1 · Prompt 5 | Checkout parte 1: dados (máscara), entrega (CEP automático via ViaCEP), upload de fotos por item (compressão, URLs assinadas, bucket privado) | ✅ |
-| Fase 1 · Prompt 6 | Checkout parte 2: criar pedido + Pix (Mercado Pago), CPF do pagador, tela do QR Code | ⚠️ escrito, **sem teste real** (falta `.env.local` + credenciais do MP) |
+| Fase 1 · Prompt 6 | Checkout parte 2: criar pedido + Pix (Mercado Pago), CPF do pagador, tela do QR Code | ⚠️ escrito, **sem teste real** (falta credencial do MP que consiga cobrar) |
 | Fase 1 · Prompt 9 | Admin: login (Supabase Auth + tabela admins), proteção de /admin, menu, dashboard com números reais, listas de pedidos/produtos/configurações (leitura) | ✅ |
 | Fase 1 · Prompt 10 | Admin de produtos: criar/editar (fotos com compressão, variações, fotos do cliente, estoque), publicar/despublicar, duplicar, excluir (vira inativo se tiver pedidos), categorias, pré-visualização e log de ações | ✅ |
-| Fase 1 · Prompt 7 | Webhook do Mercado Pago — **sem ele o pedido pago nunca é confirmado** | ⏳ próximo |
+| Fase 1 · Prompt 7 | Webhook do Mercado Pago: confere a assinatura do aviso, consulta o pagamento na API, confere o valor e confirma o pedido | ⚠️ escrito, **sem teste real** |
+| Fase 1 · Prompt 7b | Cartão de crédito com parcelamento (Card Payment Brick; juros do cliente, à vista por conta da loja) | ⚠️ escrito, **sem teste real** |
 | Fase 1 · Prompts 8, 11 | Acompanhamento do cliente, gestão de pedidos no painel | — |
 | Extra | Descontos: cupons e promoções (painel + loja) | ✅ |
 | Extra | Publicação na Cloudflare Workers (adaptador OpenNext) | ✅ |
@@ -29,12 +30,22 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
 
 1. `git clone https://github.com/mateusthuthu90/Loja-Artes-polaroids.git`
 2. `cd Loja-Artes-polaroids/plataforma` e `npm install`
-3. Copie `.env.example` para `.env.local` e preencha o que o arquivo pede:
-   as 3 chaves do Supabase (Project Settings → API) e o
-   `MERCADOPAGO_ACCESS_TOKEN` (mercadopago.com.br/developers → credenciais de
-   TESTE). Sem as do Supabase a loja abre vazia; sem a do Mercado Pago o
-   checkout Pix falha ao gerar o QR Code. O `MERCADOPAGO_WEBHOOK_SECRET` só
-   passa a ser necessário no Prompt 7.
+3. Copie `.env.example` para `.env.local` e preencha o que o arquivo pede — são
+   duas famílias de chave:
+   - **Supabase** (Project Settings → API): as 3. Sem elas a loja abre vazia.
+   - **Mercado Pago** (mercadopago.com.br/developers → sua aplicação →
+     Credenciais de **teste**): a `NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY` e o
+     `MERCADOPAGO_ACCESS_TOKEN`; e, na área de Webhooks, a assinatura secreta
+     (`MERCADOPAGO_WEBHOOK_SECRET`). Sem a Public Key o formulário de cartão não
+     abre; sem o Access Token nenhuma cobrança é criada; sem a assinatura
+     secreta o site recusa os avisos de pagamento e o pedido pago nunca é
+     confirmado.
+
+   Confira o **final do Access Token**: ele termina no número da conta dona
+   dele. Se esse número for de um usuário de teste do Mercado Pago (aquelas
+   contas `TESTUSER...`), toda cobrança volta com
+   `401 Unauthorized use of live credentials` — as credenciais precisam ser da
+   aplicação criada na conta real da loja.
 4. `npm run dev` → http://localhost:3000
 
 Para publicar a partir dessa máquina, também é preciso `npx wrangler login`
@@ -66,9 +77,17 @@ npx wrangler deploy         # publica
 ## Configurar o Supabase (uma vez, ~15 min)
 
 1. Crie o projeto em [supabase.com](https://supabase.com) (nome: `artes-polaroids`, região São Paulo).
-2. **SQL Editor** → cole e rode, nesta ordem:
+2. **SQL Editor** → cole e rode, nesta ordem (a ordem não é a numérica; veja o porquê abaixo):
    1. `supabase/migrations/20260922000001_schema_inicial.sql`
-   2. `supabase/seed.sql`
+   2. `supabase/migrations/20260922000002_descontos.sql`
+   3. `supabase/migrations/20260923000004_pagamento_cartao.sql`
+   4. `supabase/seed.sql`
+   5. `supabase/migrations/20260922000003_corrige_descricao_config.sql`
+
+   As três primeiras só criam e alteram tabelas, então vêm antes do seed. A
+   última **corrige uma linha que o seed cria**, por isso roda depois dele — o
+   seed usa `on conflict do nothing` e não se corrige sozinho numa segunda
+   passada.
 3. **Authentication → Sign In / Providers**: desligue *Allow new users to sign up*.
 4. **Authentication → Users → Add user**: crie o seu usuário (e-mail + senha).
    Copie o *User UID* e rode no SQL Editor:
