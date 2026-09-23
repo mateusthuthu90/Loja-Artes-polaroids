@@ -48,6 +48,9 @@ Next.js 16 (App Router) + Tailwind 4 + Supabase + Mercado Pago (Pix).
    `401 Unauthorized use of live credentials` — as credenciais precisam ser da
    aplicação criada na conta real da loja.
 4. `npm run dev` → http://localhost:3000
+5. **Não** refaça a seção "Configurar o Supabase" mais abaixo. O banco já existe
+   na nuvem, com os dados reais da loja — aquilo valeu uma vez, no dia em que o
+   projeto nasceu.
 
 Para publicar a partir dessa máquina, também é preciso `npx wrangler login`
 (conta Cloudflare) — ver a seção abaixo.
@@ -76,6 +79,10 @@ npx wrangler deploy         # publica
   domínio próprio entrar, troque essa linha e publique de novo.
 
 ## Configurar o Supabase (uma vez, ~15 min)
+
+> ⚠️ **Só na primeira vez, para criar o banco do zero.** Trocando de máquina,
+> pule esta seção inteira: o banco mora na nuvem e já está montado. Rodar o
+> `seed.sql` ou as migrations de novo pode bagunçar o catálogo e os pedidos.
 
 1. Crie o projeto em [supabase.com](https://supabase.com) (nome: `artes-polaroids`, região São Paulo).
 2. **SQL Editor** → cole e rode, nesta ordem (a ordem não é a numérica; veja o porquê abaixo):
