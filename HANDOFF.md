@@ -2,16 +2,23 @@
 
 Documento de transição para continuar este projeto em outra máquina.
 
+> ⚠️ **Este documento descreve o site estático da Fase 1, que não está mais no ar.**
+> A loja que os clientes acessam hoje é o app Next.js em [`plataforma/`](plataforma/),
+> publicado na Cloudflare — veja [`plataforma/README.md`](plataforma/README.md).
+> O que está aqui embaixo vale como histórico do que foi construído primeiro.
+
 ## Links importantes
 - **Repositório GitHub**: https://github.com/mateusthuthu90/Loja-Artes-polaroids
-- **Site publicado (Vercel)**: https://loja-artes-polaroids.vercel.app
-- **Deploy automático**: já configurado — todo `git push` na branch `main` publica sozinho na Vercel em ~1-2 minutos.
+- **Loja no ar (Cloudflare)**: https://artes-polaroids.mateusthuthu90.workers.dev
+- **Publicar**: dentro de `plataforma/`, rodar `npm run cf:build && npm run cf:deploy`.
+  O `cf:deploy` sozinho **não** reconstrói — ele sobe o pacote anterior.
+- **Vercel**: desativada. O endereço antigo (`loja-artes-polaroids.vercel.app`)
+  responde 404 e o `git push` não publica mais nada sozinho.
 
 ## Stack e arquitetura
 - Site estático: HTML + CSS + JavaScript puro (sem framework, sem build step).
 - Sem backend ainda — tudo roda no navegador. Carrinho, cupom, frete e pedido usam `localStorage`.
-- Hospedagem: Vercel, conectada diretamente ao repositório GitHub (push → deploy automático).
-- Fluxo de trabalho usado até aqui: pedir mudança → editar arquivos → `git commit` + `git push` (com um Personal Access Token do GitHub, formato `ghp_...`, permissão `repo`) → Vercel publica sozinha.
+- Hospedagem: era a Vercel, ligada ao repositório GitHub (push → deploy automático). Desativada — hoje quem está no ar é o `plataforma/`, na Cloudflare.
 
 ## Estrutura de pastas
 ```
@@ -98,11 +105,14 @@ Não precisa de instalação nem build:
    ```
    Depois acesse `http://localhost:8000` no navegador.
 
-## Como continuar o deploy automático
-O repositório já está conectado à Vercel. Pra continuar publicando:
+## Como publicar hoje
+Não existe mais deploy automático por `git push`. A loja é publicada à mão, de
+dentro de `plataforma/`:
 ```bash
-git add -A
-git commit -m "sua mensagem"
-git push origin main
+cd plataforma
+npm run cf:build     # reconstrói o pacote — não pule este passo
+npm run cf:deploy    # envia para a Cloudflare
 ```
-Isso requer um Personal Access Token do GitHub (`ghp_...`) com permissão `repo`, configurado como credencial do `git push` (ou salvo num credential helper). O token usado nas sessões anteriores tem validade até **15/12/2026** — depois disso, será preciso gerar um novo em `github.com/settings/tokens`.
+O `git push` continua servindo para guardar o código no GitHub (precisa de um
+Personal Access Token `ghp_...` com permissão `repo`; o usado nas sessões
+anteriores vale até **15/12/2026**), mas não publica nada.
