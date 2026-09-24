@@ -8,6 +8,20 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Cache incremental das páginas (ISR). Sem isto o Worker re-renderiza a home
+  // inteira a cada visita — era o que estourava o limite de CPU (erro 1102).
+  "kv_namespaces": [
+    {
+      "binding": "NEXT_INC_CACHE_KV",
+      "id": "92437c2ec5db4bac9e9314b595b31df3"
+    },
+    // Guarda as tags de cache. É por ele que o *revalidateTag* do painel
+    // derruba a página cacheada na hora em que você salva um produto.
+    {
+      "binding": "NEXT_TAG_CACHE_KV",
+      "id": "a28220367b794df7b196f9f979461e10"
+    }
+  ],
   // otimização das imagens pela própria Cloudflare
   "images": {
     "binding": "IMAGES"
